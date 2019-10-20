@@ -1,0 +1,25 @@
+{
+  "name": "search.test.Request",
+  "type": "record",
+  "fields": [
+    {
+      "name": "query",
+      "type": "string"
+    },
+    {
+      "name": "order_by",
+      "type": {
+        "name": "OrderBy",
+        "type": "enum",
+        "symbols": [
+          "created_at",
+          "updated_at"
+        ]
+      }
+    },
+    {
+      "name" : "size",
+      "type" : ["null", "long"]
+    }
+  ]
+}

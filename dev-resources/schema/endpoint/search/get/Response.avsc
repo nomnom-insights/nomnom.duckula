@@ -1,0 +1,17 @@
+{
+  "name": "search.get.Response",
+  "type": "record",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string"
+    },
+    {
+      "name": "results",
+      "type": {
+        "type": "array",
+        "items" : [ "TagItem" ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+# -*- mode: restclient -*-
+
+# Fake search endpoint
+POST http://localhost:3003/search/test
+Content-type: application/json
+accept: application/json
+{ "query" : "an query", "order_by" : "created_at" , "size" : 10 }
+
+# Fake search endpoint, invalid input
+POST http://localhost:3003/search/test
+Content-type: application/json
+accept: application/json
+{ "query" : null , "size" : "10" }
+
+
+# double a number endpoint
+POST http://localhost:3003/number/multiply
+Content-type: application/json
+accept: application/json
+{ "input" : "20" }
+
+
+
+# double a number endpoint, invalid input
+POST http://localhost:3003/number/multiply
+Content-type: application/json
+accept: application/json
+{ "input" : 42}
+
+# echo, no validation
+POST http://localhost:3003/echo
+Content-type: application/json
+accept: application/json
+{ "input" : "20" }

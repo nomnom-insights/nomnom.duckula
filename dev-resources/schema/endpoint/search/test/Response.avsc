@@ -1,0 +1,45 @@
+{
+  "name": "search.test.Response",
+  "type": "record",
+  "fields": [
+    {
+      "name": "status",
+      "type": {
+        "name": "ResponseStatus",
+        "type": "enum",
+        "symbols": [
+          "success",
+          "error",
+          "timeout"
+        ]
+      }
+    },
+    {
+      "name": "message",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    {
+      "name": "items",
+      "type" : {
+        "type": "array",
+        "items": {
+          "name": "SearchItem",
+          "type": "record",
+          "fields": [
+            {
+              "name": "content",
+              "type": "string"
+            },
+            {
+              "name": "id",
+              "type": "long"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

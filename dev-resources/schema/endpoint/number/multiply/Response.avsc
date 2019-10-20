@@ -1,0 +1,27 @@
+{
+  "name": "number.multiply.Responses",
+  "type": "record",
+  "fields": [
+    {
+      "name": "status",
+      "type": {
+        "name": "ResponseStatus",
+        "type": "enum",
+        "symbols": [
+          "success",
+          "error",
+          "timeout"
+        ]
+      }
+    },
+    {
+      "name": "message",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    {
+    "name" : "result", "type" : "long" }
+  ]
+}

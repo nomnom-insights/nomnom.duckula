@@ -1,0 +1,8 @@
+{
+  "name" : "TagItem",
+  "type" : "record",
+  "fields" : [
+    { "name" : "name", "type" : "string" },
+    { "name" : "priority" , "type" : "long" }
+  ]
+}
