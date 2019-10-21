@@ -104,10 +104,10 @@ It depends on a component implementing  duckula.prococol/Monitoring protocol
         (monitoring/with-timing monitoring metric-key
           (if handler-fn
             (try
-              (validate-with-tag ::request request-validator body monitoring)
+              (validate-with-tag ::request request-validator (or body {}) monitoring)
               (let [{:keys [status body] :as response} (handler-fn request)
                     ok? (< status 400)]
-                (validate-with-tag ::response response-validator body monitoring)
+                (validate-with-tag ::response response-validator (or body {}) monitoring)
                 (if ok?
                   (monitoring/on-success monitoring success-key {:body body :staus status})
                   (monitoring/on-error monitoring error-key))
