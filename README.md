@@ -83,7 +83,7 @@ Duckula will:
   - number of successfully handled requests under `some-rpc-service.search.test.success`
   - number of errored (invalid input etc) handled requests under `some-rpc-service.search.test.error`
   - number of failed (exceptions) handled requests under `some-rpc-service.search.test.failure`
-- report exceptions to Rollbar (by default, via nomnom.caliban - it offers extensibility via protocols)
+- log/report exceptions (if any)
 - when schemas fail to validate it responds with standard error response and info about which schema and when it failed
 - if a route doesn't exist it will respond with standard 404 and record metrics
 
@@ -194,70 +194,9 @@ See it here: https://github.com/nomnom-insights/nomnom.duckula.monitoring
   (swap! server component/stop))
 ```
 
-#### Sample requests
+### As part of an existing ring application
 
-```restclient
-
-# Fake search endpoint
-POST http://localhost:3003/search/test
-Content-type: application/json
-accept: application/json
-{ "query" : "an query", "order_by" : "created_at" , "size" : 10 }
-
-# output =>
-{
-  "status": "success",
-  "items": [
-    {
-      "id": 1,
-      "content": "query: an query order created_at size 10"
-    }
-  ]
-}
-
-# Fake search endpoint, invalid input
-POST http://localhost:3003/search/test
-Content-type: application/json
-accept: application/json
-{ "query" : null , "size" : "10" }
-
-# otput => 500, error
-
-
-# double a number endpoint
-POST http://localhost:3003/number/multiply
-Content-type: application/json
-accept: application/json
-{ "input" : 20 }
-
-# output => {
-  "status": "success",
-  "message": "funky",
-  "result": 40
-}
-
-# double a number endpoint, invalid input
-POST http://localhost:3003/number/multiply
-Content-type: application/json
-accept: application/json
-{ "input" : "20" }
-
-# output => type error
-
-# echo, no validation
-POST http://localhost:3003/echo
-Content-type: application/json
-accept: application/json
-{ "input" : "20" }
-
-# output => whatever, it doesn't care
-{
-  "echo": "echo = {:input \"20\"}"
-}
-
-```
-
-### As part existing ring application
+An example of how to add Duckula powered routes to an existing Compojure-based app:
 
 ```clojure
 
