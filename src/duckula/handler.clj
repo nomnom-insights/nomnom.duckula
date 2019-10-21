@@ -3,8 +3,7 @@
   but can validate requests with provided Avro schemas"
   (:require [cheshire.core :as json]
             duckula.avro
-            [caliban.tracker.protocol :as tracker]
-            [stature.metrics.protocol :as metrics]
+            [duckula.protocol :as monitoring]
             [clojure.string :as s]
             [clojure.tools.logging :as log]))
 
@@ -60,7 +59,7 @@
   "Runs validation function and re-throws the exception
   with extra info attached.
   Each generated avro validator function carries metadata with schema name"
-  [tag validator-fn input exception-tracker]
+  [tag validator-fn input monitoring]
   (let [{:keys [schema-name soft-validate?]} (meta validator-fn)]
     (try
       (validator-fn input)
@@ -68,11 +67,11 @@
         (let [info {:schema-name schema-name
                     :soft-validate? soft-validate?
                     :validation-type tag}]
-          (log/errorf err "invalid tag=%s schema=%s soft-validate=%s" tag schema-name soft-validate?)
+          (log/debugf err "invalid tag=%s schema=%s soft-validate=%s" tag schema-name soft-validate?)
           (if soft-validate?
             ;; report exception and pass through
             (do
-              (tracker/report exception-tracker err)
+              (monitoring/track-exception monitoring err)
               input)
             ;; otherwise re-throw
             (throw (ex-info (.getMessage err) info))))))))
@@ -89,38 +88,40 @@ Config has to have the form of:
 }
 Handler assumes that requests use application/json for input and output as content types.
 For 100% avro input/input we'd need a slightly different builder (and ring middlewares).
-It depends on stature and caliban components and will use them to track:
+It depends on a component implementing  duckula.prococol/Monitoring protocol
 - request count (success, error, failure)
 - request timing
 - track exceptions"
   (let [routes (build-route-map config)
         metrics (build-metric-keys config)]
     (fn [{:keys [uri component headers body] :as request}]
-      (let [{:keys [statsd exception-tracker]} component
+      (let [{:keys [monitoring]} component
             request-fns (get routes uri)
             request-validator (get request-fns :request)
             response-validator (get request-fns :response)
             handler-fn (get request-fns :handler)
             [metric-key success-key error-key failure-key] (get metrics uri not-found-metrics)]
-        (metrics/with-timing statsd metric-key
+        (monitoring/with-timing monitoring metric-key
           (if handler-fn
             (try
-              (validate-with-tag ::request request-validator body exception-tracker)
+              (validate-with-tag ::request request-validator body monitoring)
               (let [{:keys [status body] :as response} (handler-fn request)
                     ok? (< status 400)]
-                (validate-with-tag ::response response-validator body exception-tracker)
-                (metrics/count statsd (if ok? success-key error-key))
+                (validate-with-tag ::response response-validator body monitoring)
+                (if ok?
+                  (monitoring/on-success monitoring success-key {:body body :staus status})
+                  (monitoring/on-error monitoring error-key))
                 (-> response
                     (assoc-in [:headers "content-type"] "application/json")
                     (update :body json/generate-string)))
               (catch Exception err
-                (metrics/count statsd failure-key)
+                (monitoring/on-failure monitoring failure-key)
                 (let [{:keys [validation-type] :as metadata} (ex-data err)
                       to-report (merge
                                  headers
                                  metadata
                                  (select-keys request [:uri :host :request-host]))]
-                  (tracker/report exception-tracker err to-report)
+                  (monitoring/track-exception monitoring  err to-report)
                   {:body (json/generate-string
                           {:message "Request failed"
                            :error (.getMessage err)
@@ -130,5 +131,5 @@ It depends on stature and caliban components and will use them to track:
                              500) ; server failure
                    :headers {"content-type" "application/json"}})))
             (do
-              (metrics/count statsd error-key)
+              (monitoring/on-not-found monitoring error-key uri)
               (not-found-404))))))))

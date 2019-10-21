@@ -1,6 +1,6 @@
 (ns duckula.handler-test
   (:require [clojure.test :refer :all]
-            [stature.metrics.protocol]
+            [duckula.protocol]
             [duckula.handler :as handler]))
 
 (deftest metric-keys
@@ -46,32 +46,76 @@
     (is (= static-response
            (validator static-response)))))
 
+(defn create-monitoring [metric-store]
+  (reify
+    duckula.protocol/Monitoring
+    (on-success [this key _response]
+      (swap! metric-store (fn [store]
+                            (update store key (fn [value]
+                                                (inc (or value 0)))))))
+    (on-error [this key]
+      (swap! metric-store (fn [store] (assoc store key 1))))
+    (on-failure [this key]
+      (swap! metric-store (fn [store] (assoc store key 1))))
+    (record-timing [this key val]
+      (swap! metric-store (fn [store]
+                            (assoc store (str key ".timing") val))))
+    (track-exception [this err]
+      (swap! metric-store (fn [store]
+                            (update store :exceptions conj err))))
+    (track-exception [this err data]
+      (swap! metric-store (fn [store]
+                            (update store :exceptions conj {:err err :data data}))))
+    (on-not-found [this key uri]
+      (swap! metric-store (fn [store]
+                            (assoc store key uri))))))
+
 (deftest recorded-metrics
-  (let [metric-store (atom {})
-        fake-statsd (reify
-                      stature.metrics.protocol/Metrics
-                      (count [this key]
-                        (swap! metric-store (fn [store]
-                                              (update store key (fn [value]
-                                                                  (inc (or value 0)))))))
-                      (gauge [this key val]
-                        (swap! metric-store (fn [store]
-                                              (println ::gauge)
-                                              (assoc store (str key ".gauge") val))))
-                      (timing [this key val]
-                        (swap! metric-store (fn [store]
-                                              (assoc store (str key ".timing") val)))))
-        handler (handler/build {:name "test"
-                                :endpoints {"/echo" {:handler (fn [_]
-                                                                (Thread/sleep 100)
-                                                                {:status 207 :body ""})}}})
-        response (handler {:uri "/echo"
-                           :component {:statsd fake-statsd}
-                           :body {}})]
-    (is (= 207
-           (:status response)))
-    (is (= 1
-           (get @metric-store "test.echo.success")))
-    (is (>=
-         (get @metric-store "test.echo.timing")
-         100))))
+  (testing "tracking success"
+    (let [handler (handler/build {:name "test"
+                                  :endpoints {"/echo" {:handler (fn [_]
+                                                                  (Thread/sleep 100)
+                                                                  {:status 207 :body ""})}}})
+          metric-store (atom {:exceptions []})
+          response (handler {:uri "/echo"
+                             :component {:monitoring (create-monitoring metric-store)}
+                             :body {}})]
+      (is (= 207
+             (:status response)))
+      (is (= 1
+             (get @metric-store "test.echo.success")))
+      (is (>=
+           (get @metric-store "test.echo.timing")
+           100))))
+  (testing "tracking errors"
+    (let [handler (handler/build {:name "test"
+                                  :endpoints {"/multiply" {:request "number/multiply/Request"
+                                                           :handler (fn [_]
+                                                                      (Thread/sleep 100)
+                                                                      {:status 207 :body ""})}}})
+          metric-store (atom {:exceptions []})
+          response (handler {:uri "/multiply"
+                             :component {:monitoring (create-monitoring metric-store)}
+                             :body {}})]
+      (is (= 410
+             (:status response)))
+      (is (= 1 (count (:exceptions  @metric-store))))
+      (is (= 1
+             (get @metric-store "test.multiply.failure")))))
+  (testing "tracking failures"
+    (let [handler (handler/build {:name "test"
+                                  :endpoints {"/echo" {:handler (fn [_]
+                                                                  (throw (ex-info "noooo" {}))
+                                                                  {:status 207 :body ""})}}})
+          metric-store (atom {:exceptions []})
+          response (handler {:uri "/echo"
+                             :component {:monitoring (create-monitoring metric-store)}
+                             :body {}})]
+      (is (= 500
+             (:status response)))
+      (is (nil? (get @metric-store "test.echo.success")))
+      (is (= "noooo"
+             (.getMessage (:err (first (:exceptions @metric-store))))))
+
+      (is (= 1
+             (get @metric-store "test.echo.failure"))))))
