@@ -4,8 +4,6 @@
   (:require [cheshire.core :as json]
             duckula.avro
             [duckula.protocol :as monitoring]
-                                        ; [caliban.tracker.protocol :as tracker]
-                                        ; [stature.metrics.protocol :as metrics]
             [clojure.string :as s]
             [clojure.tools.logging :as log]))
 

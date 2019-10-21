@@ -14,7 +14,6 @@
     [this exception]
     "Tracks that an exception was thrown"))
 
-
 (defmacro with-timing
   "Tiny macro to record timing of a given form."
   [monitoring ^String key & body]

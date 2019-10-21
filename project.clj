@@ -1,11 +1,13 @@
 (defproject nomnom/duckula "0.5.0"
   :description "RPC server (and soon, client), built on top of JSON+Avro+HTTP"
   :url "https://github.com/nomnom-insights/nomnom.duckula"
-
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [com.stuartsierra/component "0.4.0"]
                  [nomnom/abracad "0.5.0"]]
-
+  :license {:name "MIT License"
+            :url "https://opensource.org/licenses/MIT"
+            :year 2018
+            :key "mit"}
   :plugins [[lein-cloverage "1.0.13" :exclusions [org.clojure/clojure]]]
 
   :profiles {:dev
