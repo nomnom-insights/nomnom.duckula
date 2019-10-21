@@ -14,7 +14,7 @@ Duckula is a synchronous equivalent of [Bunnicula](https://github.com/nomnom-ins
 - handlers are functions receiving the request map, along with dependent components
 - validates inputs and outputs via Avro schemas
   - supports merging multiple Avro schemas to make it easy to share schemas
-- uses [Stature](https://github.com/nomnom-insights/nomnom.stature) and [Caliban](https://github.com/nomnom-insights/nomnom.caliban) for metrics and error tracking
+- uses protocols to inject a monitoring middleware. We provide our own, which reports metrics to Statsd and errors to Rollbar - see [duckula.monitoring](https://github.com/nomnom-insights/nomnom.duckula.monitoring)
 - convention over configuration, where it makes sense
 
 
@@ -61,12 +61,11 @@ Then in your Component system:
   (merge
    {:db (some.db/connection)
    ;; required for metrics and error reporting
-    :statsd (stature.metrics/create config)
-    :exception-tracker (caliban.trakcker/create config)}
+    :monitoring duckula.component.basic-monitoring/BasicMonitoring}
    ;; see dev-resources dir for a working example
    (duckula.test.component.http-server/create
     (duckula.handler/build config)
-    [:db :statsd :exception-tracker]
+    [:db :monitoring]
     {:port 300 :name "api"})))
 
 ```
@@ -140,16 +139,24 @@ You can configure the endpoints to merge schemas, for re-use of parts by passing
                           :handler test-fn } } }
 ```
 
+# Monitoring
 
-### As a standalone server
+Only hard dependency is the monitoring component, which implements `duckula.protcol/Monitoring` protocol. A sample implementation can be found in `duckula.component.monitoring` namespace.
+
+We have a full, production grade implementation based on [Caliban](https://github.com/nomnom-insights/nomnom.caliban) for reporting exceptions to Rollbar, and [Stature](https://github.com/nomnom-insights/nomnom.stature) for recording metrics to a Statsd server.
+
+See it here: https://github.com/nomnom-insights/nomnom.duckula.monitoring
+
+# Usage
+
+### As a standalone handler in a web server
 
 ```clojure
 (ns duckula.server
   "Test HTTP server"
   (:require [duckula.test.component.http-server :as http-server]
             duckula.handler
-            [caliban.tracker]
-            [stature.metrics]
+            [duckula.component.basic-monitoring :as monit]
             [duckula.handler.echo :as handler.echo]
             [duckula.handler.number :as handler.number]
             [duckula.handler.search :as handler.search]
@@ -176,10 +183,9 @@ You can configure the endpoints to merge schemas, for re-use of parts by passing
 (defn start! []
   (let [sys (component/map->SystemMap
              (merge
-              {:statsd (stature.metrics/create) ;...
-               :exception-tracker (caliban.tracker/create)} ; ...
+              {:monitoring monit/BasicMonitoring}
               (http-server/create (duckula.handler/build config)
-                                  [:statsd :exception-tracker]
+                                  [:monitoring]
                                   {:name "test-rpc-server"
                                    :port 3003})))]
     (reset! server (component/start sys))))
