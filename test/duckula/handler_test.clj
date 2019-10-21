@@ -1,6 +1,6 @@
 (ns duckula.handler-test
   (:require [clojure.test :refer :all]
-            [stature.metrics.protocol]
+            [duckula.protocol]
             [duckula.handler :as handler]))
 
 (deftest metric-keys
@@ -47,26 +47,34 @@
            (validator static-response)))))
 
 (deftest recorded-metrics
-  (let [metric-store (atom {})
-        fake-statsd (reify
-                      stature.metrics.protocol/Metrics
-                      (count [this key]
-                        (swap! metric-store (fn [store]
-                                              (update store key (fn [value]
-                                                                  (inc (or value 0)))))))
-                      (gauge [this key val]
-                        (swap! metric-store (fn [store]
-                                              (println ::gauge)
-                                              (assoc store (str key ".gauge") val))))
-                      (timing [this key val]
-                        (swap! metric-store (fn [store]
-                                              (assoc store (str key ".timing") val)))))
+  (let [metric-store (atom {:exceptions []})
+        fake-monitoring (reify
+                          duckula.protocol/Monitoring
+                          (on-success [this key _response]
+                            (swap! metric-store (fn [store]
+                                                  (update store key (fn [value]
+                                                                      (inc (or value 0)))))))
+                          (on-error [this key]
+                            (swap! metric-store (fn [store]
+                                                  (assoc store (str key ".error") 1))))
+                          (on-failure [this key]
+                            (swap! metric-store (fn [store]
+                                                  (assoc store (str key ".faliure") 1))))
+                          (record-timing [this key val]
+                            (swap! metric-store (fn [store]
+                                                  (assoc store (str key ".timing") val))))
+                          (track-exception [this err]
+                            (swap! metric-store (fn [store]
+                                                  (update store :exceptions conj err))))
+                          (track-exception [this err data]
+                            (swap! metric-store (fn [store]
+                                                  (update store :exceptions conj {:err err :data data})))))
         handler (handler/build {:name "test"
                                 :endpoints {"/echo" {:handler (fn [_]
                                                                 (Thread/sleep 100)
                                                                 {:status 207 :body ""})}}})
         response (handler {:uri "/echo"
-                           :component {:statsd fake-statsd}
+                           :component {:monitoring fake-monitoring}
                            :body {}})]
     (is (= 207
            (:status response)))

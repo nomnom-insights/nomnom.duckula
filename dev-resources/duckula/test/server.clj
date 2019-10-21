@@ -2,8 +2,7 @@
   "Test HTTP server"
   (:require [duckula.test.component.http-server :as http-server]
             duckula.handler
-            [stature.metrics.mock :as mock.statsd]
-            [caliban.tracker.mock :as mock.tracker]
+            [duckula.component.basic-monitoring :as monitoring]
             [duckula.test.handler.echo :as handler.echo]
             [duckula.test.handler.number :as handler.number]
             [duckula.test.handler.search :as handler.search]
@@ -31,10 +30,9 @@
 (defn start-with-handler! [handler]
   (let [sys (component/map->SystemMap
              (merge
-              {:statsd (mock.statsd/create)
-               :exception-tracker (mock.tracker/create)}
+              {:monitoring monitoring/BasicMonitoring}
               (http-server/create handler
-                                  [:statsd :exception-tracker]
+                                  [:monitoring]
                                   {:name "test-rpc-server"
                                    :port 3003})))]
     (reset! server (component/start sys))))
