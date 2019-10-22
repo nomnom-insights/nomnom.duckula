@@ -221,3 +221,11 @@ An example of how to add Duckula powered routes to an existing Compojure-based a
 
 
 ```
+
+# Authors
+
+<sup>In alphabetical order</sup>
+
+- [Afonso Tsukamoto](https://github.com/AfonsoTsukamoto)
+- [Łukasz Korecki](https://github.com/lukaszkorecki)
+- [Marketa Adamova](https://github.com/MarketaAdamova)
