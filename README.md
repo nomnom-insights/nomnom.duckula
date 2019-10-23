@@ -1,5 +1,13 @@
 # duckula
 
+
+Status
+[![CircleCI](https://circleci.com/gh/nomnom-insights/nomnom.duckula.svg?style=svg)](https://circleci.com/gh/nomnom-insights/nomnom.duckula)
+
+Installation:
+
+[![Clojars Project](https://img.shields.io/clojars/v/nomnom/duckula.svg)](https://clojars.org/nomnom/duckula)
+
 <img src="https://vignette.wikia.nocookie.net/danmacgregor/images/4/4e/Count_Duckula.jpg/revision/latest?cb=20100807200739" align="right" height="160px" />
 
 > :warning: While Duckula is used in production by [EnjoyHQ](https://getenjoyhq.com) there are still things we're working out. You have been warned! :warning:
