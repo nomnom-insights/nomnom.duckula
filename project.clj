@@ -4,6 +4,9 @@
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [com.stuartsierra/component "0.4.0"]
                  [nomnom/abracad "0.5.0"]]
+  :deploy-repositories {"clojars" {:sign-releases false
+                                   :username [:gpg :env/clojars_username]
+                                   :password [:gpg :env/clojars_password]}}
   :license {:name "MIT License"
             :url "https://opensource.org/licenses/MIT"
             :year 2018
