@@ -11,7 +11,8 @@ Installation:
 <img src="https://vignette.wikia.nocookie.net/danmacgregor/images/4/4e/Count_Duckula.jpg/revision/latest?cb=20100807200739" align="right" height="160px" />
 
 > :warning: While Duckula is used in production by [EnjoyHQ](https://getenjoyhq.com) there are still things we're working out. You have been warned! :warning:
-> :warning: If you value **stable** software, wait for the v1, otherwise - here be ducks
+
+> :warning: If you value **stable** software - wait for the v1, otherwise - here be ducks
 
 Duckula is a synchronous equivalent of [Bunnicula](https://github.com/nomnom-insights/nomnom.bunnicula) bult on top of ring, HTTP, JSON and Avro:
 
