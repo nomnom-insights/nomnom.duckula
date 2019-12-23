@@ -4,17 +4,31 @@
             [duckula.handler :as handler]))
 
 (deftest metric-keys
-  (is (= {"/bar/baz/ok-how-about-this" ["foo.bar.baz.ok-how-about-this"
-                                        "foo.bar.baz.ok-how-about-this.success"
-                                        "foo.bar.baz.ok-how-about-this.error"
-                                        "foo.bar.baz.ok-how-about-this.failure"]
-          "/one/two/three" ["foo.one.two.three"
-                            "foo.one.two.three.success"
-                            "foo.one.two.three.error"
-                            "foo.one.two.three.failure"]}
-         (handler/build-metric-keys {:name "foo"
-                                     :endpoints {"/one/two/three" {:handler (fn [])}
-                                                 "/bar/baz/ok-how-about-this" {:handler (fn [])}}}))))
+  (testing "regular case"
+    (is (= {"/bar/baz/ok-how-about-this" ["foo.bar.baz.ok-how-about-this"
+                                          "foo.bar.baz.ok-how-about-this.success"
+                                          "foo.bar.baz.ok-how-about-this.error"
+                                          "foo.bar.baz.ok-how-about-this.failure"]
+            "/one/two/three" ["foo.one.two.three"
+                              "foo.one.two.three.success"
+                              "foo.one.two.three.error"
+                              "foo.one.two.three.failure"]}
+           (handler/build-metric-keys {:name "foo"
+                                       :endpoints {"/one/two/three" {:handler (fn [])}
+                                                   "/bar/baz/ok-how-about-this" {:handler (fn [])}}}))))
+  (testing "with prefix"
+    (is (= {"/api/bar/baz/ok-how-about-this" ["foo.bar.baz.ok-how-about-this"
+                                          "foo.bar.baz.ok-how-about-this.success"
+                                          "foo.bar.baz.ok-how-about-this.error"
+                                          "foo.bar.baz.ok-how-about-this.failure"]
+            "/api/one/two/three" ["foo.one.two.three"
+                                  "foo.one.two.three.success"
+                                  "foo.one.two.three.error"
+                                  "foo.one.two.three.failure"]}
+           (handler/build-metric-keys {:name "foo"
+                                       :prefix "/api"
+                                       :endpoints {"/one/two/three" {:handler (fn [])}
+                                                   "/bar/baz/ok-how-about-this" {:handler (fn [])}}})))))
 
 (deftest route-map-builder
   (let [search-handler (fn [])
