@@ -35,7 +35,7 @@
   [{:keys [endpoints prefix] :as config}]
   (->> endpoints
        (map (fn [[path _conf]]
-              (let [metric-key (str (:name config) (s/replace path \/ \.))
+              (let [metric-key (str (:name config) (s/replace (str prefix path) \/ \.))
                     success-key (str metric-key ".success")
                     error-key (str metric-key ".error")
                     failure-key (str metric-key ".failure")]
