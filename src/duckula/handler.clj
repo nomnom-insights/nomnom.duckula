@@ -32,18 +32,17 @@
   test-api.some.endpoint.success
   test-api.some.endpoint.error
   test-api.some.endpoint.failure"
-  [config]
-  (->> config
-       :endpoints
+  [{:keys [endpoints prefix] :as config}]
+  (->> endpoints
        (map (fn [[path _conf]]
-              (let [metric-key (str (:name config) (s/replace path \/ \.))
+              (let [metric-key (str (:name config) (s/replace (str prefix path) \/ \.))
                     success-key (str metric-key ".success")
                     error-key (str metric-key ".error")
                     failure-key (str metric-key ".failure")]
-                (hash-map path [metric-key
-                                success-key
-                                error-key
-                                failure-key]))))
+                (hash-map (str prefix path) [metric-key
+                                             success-key
+                                             error-key
+                                             failure-key]))))
        (into {})))
 
 (def not-found-metrics
