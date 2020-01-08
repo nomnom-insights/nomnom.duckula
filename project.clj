@@ -1,4 +1,4 @@
-(defproject nomnom/duckula "0.5.1-SNAPSHOT"
+(defproject nomnom/duckula "0.5.1"
   :description "RPC server (and soon, client), built on top of JSON+Avro+HTTP"
   :url "https://github.com/nomnom-insights/nomnom.duckula"
   :dependencies [[org.clojure/clojure "1.10.1"]
