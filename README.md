@@ -238,9 +238,7 @@ An example of how to add Duckula powered routes to an existing Compojure-based a
 
 ## [0.5.1] - 2019-12-26
 
-*Unreleased*
-
-Bug fix release - fixes an issue with metrics reporting for namespaced routes. Available as `0.5.1-SNAPSHOT`
+Bug fix release - fixes an issue with metrics reporting for namespaced routes.
 
 ## [0.5.0] - 2019-10-23
 
