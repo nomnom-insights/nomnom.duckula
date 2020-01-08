@@ -50,16 +50,16 @@ Duckula is mostly config driven. An example config for a "test-rpc-service" woul
 
 (def config
   {:name "some-rpc-service"
-   :mangle-names? false ; default false, see below
-   :endpoints "/search/test" {:request ["shared/Tag" "search/test/Request"]
-                              :response ["shared/Tag" "search/test/Response"]
-                              :handler handler.search/handler}
-             "/number/multiply" {:request "number/multiply/Request"
-                                 :response "number/multiply/Response"
-                                 :soft-validate? true ; default false, see below
-                                 :handler handler.number/handler}
-   ;; no validation
-   "/echo" {:handler handler.echo/handler}})
+   :mangle-names? false ;; default false, see below
+   :endpoints { "/search/test" {:request ["shared/Tag" "search/test/Request"] ; re-use schemas
+                                :response ["shared/Tag" "search/test/Response"]
+                                :handler handler.search/handler} ; request handler
+               "/number/multiply" {:request "number/multiply/Request"
+                                   :response "number/multiply/Response"
+                                   :soft-validate? true ; default false, see below
+                                   :handler handler.number/handler}
+               ;; no validation
+               "/echo" {:handler handler.echo/handler}}})
 
 ```
 
@@ -70,13 +70,15 @@ Then in your Component system:
 (def system-map
   (merge
    {:db (some.db/connection)
-   ;; required for metrics and error reporting
+    ;; required for metrics and error reporting
     :monitoring duckula.component.basic-monitoring/BasicMonitoring}
    ;; see dev-resources dir for a working example
+   ;; at the very least, your ring middleware stack needs to handle
+   ;; JSON parsing from the POST body
    (duckula.test.component.http-server/create
     (duckula.handler/build config)
     [:db :monitoring]
-    {:port 300 :name "api"})))
+    {:port 3000 :name "api"})))
 
 ```
 
@@ -99,12 +101,11 @@ Duckula will:
 
 ### `mangle-names?`
 
-By default all map keys and enum values have to use `_` (underscore) as word separators.
+By default all map keys and enum values have to use `_` (underscore) as word separators. That's true for inputs (POST data) and outputs (JSON responses). That also means, that all keys with `-` dashes in key names, will be replaced with `_` underscores. See more info about schema mangling here: https://github.com/nomnom-insights/abracad#basic-deserialization
+
 If you want to enable automatic conversion of underscores to dashes (and make underscored names invalid) set `mangle-names?` to true.
 
-See more info about schema mangling here: https://github.com/nomnom-insights/abracad#basic-deserialization
-
-Example schema
+#### Example
 
 ```json
  {
@@ -151,9 +152,9 @@ You can configure the endpoints to merge schemas, for re-use of parts by passing
 
 # Monitoring
 
-Only hard dependency is the monitoring component, which implements `duckula.protcol/Monitoring` protocol. A sample implementation can be found in `duckula.component.monitoring` namespace.
+Theonl only hard dependency is the monitoring component, which implements `duckula.protcol/Monitoring` protocol. A sample implementation can be found in `duckula.component.monitoring` namespace.
 
-We have a full, production grade implementation based on [Caliban](https://github.com/nomnom-insights/nomnom.caliban) for reporting exceptions to Rollbar, and [Stature](https://github.com/nomnom-insights/nomnom.stature) for recording metrics to a Statsd server.
+We have a complete, production grade implementation based on [Caliban](https://github.com/nomnom-insights/nomnom.caliban) for reporting exceptions to Rollbar, and [Stature](https://github.com/nomnom-insights/nomnom.stature) for recording metrics to a Statsd server.
 
 See it here: https://github.com/nomnom-insights/nomnom.duckula.monitoring
 
@@ -181,14 +182,14 @@ See it here: https://github.com/nomnom-insights/nomnom.duckula.monitoring
 ;; meaning, there's no validation :-)
 (def config
   {:name "some-rpc-service"
-   :endpoints "/search/test" {:request "search/test/Request"
+   :endpoints {"/search/test" {:request "search/test/Request"
                               :response "search/test/Response"
                               :handler handler.search/handler}
    "/number/multiply" {:request "number/multiply/Request"
                        :response "number/multiply/Response"
                        :handler handler.number/handler}
    ;; no validation
-   "/echo" {:handler handler.echo/handler}})
+   "/echo" {:handler handler.echo/handler}}})
 
 (defn start! []
   (let [sys (component/map->SystemMap
