@@ -235,6 +235,9 @@ An example of how to add Duckula powered routes to an existing Compojure-based a
 
 # Changelog
 
+## [0.5.2 - 2020-02-15
+
+Avro schema memoization has been removed, improves dev workflow.
 
 ## [0.5.1] - 2019-12-26
 
