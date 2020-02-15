@@ -10,16 +10,14 @@
     (string? n) (str *default-path* n *default-extension*)
     (sequential? n) (mapv name->path n)))
 
-(defn load-schema* [names]
+(defn load-schemas [names]
   (cond
     (string? names) (-> names
                         io/read-json-resource
-                        codec/parse-schema)
+                        codec/parse-schema*)
     (sequential? names) (->> names
                              (mapv io/read-json-resource)
                              (apply codec/parse-schema*))))
-
-(def load-schemas (memoize load-schema*))
 
 (defn validate-with-schema [schema input]
   (if schema
