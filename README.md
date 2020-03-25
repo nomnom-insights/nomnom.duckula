@@ -235,7 +235,11 @@ An example of how to add Duckula powered routes to an existing Compojure-based a
 
 # Changelog
 
-## [0.5.2 - 2020-02-15
+## [0.5.3] - 2020-03-25
+
+Fix to response status reprting and misplaced doc string
+
+## [0.5.2] - 2020-02-15
 
 Avro schema memoization has been removed, improves dev workflow.
 
