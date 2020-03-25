@@ -75,7 +75,7 @@
             ;; otherwise re-throw
             (throw (ex-info (.getMessage err) info))))))))
 
-(defn build [config]
+(defn build
   "Sort of a router, but does validation.
 Config has to have the form of:
 {
@@ -91,6 +91,7 @@ It depends on a component implementing  duckula.prococol/Monitoring protocol
 - request count (success, error, failure)
 - request timing
 - track exceptions"
+  [config]
   (let [routes (build-route-map config)
         metrics (build-metric-keys config)]
     (fn [{:keys [uri component headers body] :as request}]
@@ -108,7 +109,7 @@ It depends on a component implementing  duckula.prococol/Monitoring protocol
                     ok? (< status 400)]
                 (validate-with-tag ::response response-validator (or body {}) monitoring)
                 (if ok?
-                  (monitoring/on-success monitoring success-key {:body body :staus status})
+                  (monitoring/on-success monitoring success-key {:body body :status status})
                   (monitoring/on-error monitoring error-key))
                 (-> response
                     (assoc-in [:headers "content-type"] "application/json")
