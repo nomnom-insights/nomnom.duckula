@@ -71,7 +71,7 @@ Then in your Component system:
   (merge
    {:db (some.db/connection)
     ;; required for metrics and error reporting
-    :monitoring duckula.component.basic-monitoring/BasicMonitoring}
+    :monitoring duckula.component.basic-monitoring/basic}
    ;; see dev-resources dir for a working example
    ;; at the very least, your ring middleware stack needs to handle
    ;; JSON parsing from the POST body
@@ -167,7 +167,7 @@ See it here: https://github.com/nomnom-insights/nomnom.duckula.monitoring
   "Test HTTP server"
   (:require [duckula.test.component.http-server :as http-server]
             duckula.handler
-            [duckula.component.basic-monitoring :as monit]
+            [duckula.component.basic-monitoring :as monitoring]
             [duckula.handler.echo :as handler.echo]
             [duckula.handler.number :as handler.number]
             [duckula.handler.search :as handler.search]
@@ -194,7 +194,7 @@ See it here: https://github.com/nomnom-insights/nomnom.duckula.monitoring
 (defn start! []
   (let [sys (component/map->SystemMap
              (merge
-              {:monitoring monit/BasicMonitoring}
+              {:monitoring monitoring/basic}
               (http-server/create (duckula.handler/build config)
                                   [:monitoring]
                                   {:name "test-rpc-server"

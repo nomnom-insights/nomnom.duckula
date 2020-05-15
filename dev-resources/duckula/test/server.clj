@@ -30,7 +30,7 @@
 (defn start-with-handler! [handler]
   (let [sys (component/map->SystemMap
              (merge
-              {:monitoring monitoring/BasicMonitoring}
+              {:monitoring monitoring/basic}
               (http-server/create handler
                                   [:monitoring]
                                   {:name "test-rpc-server"
