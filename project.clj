@@ -5,9 +5,8 @@
                  [com.stuartsierra/component "0.4.0"]
                  [nomnom/abracad "0.5.1"]
 
-                 ;; doc generator
-                 [cddr/integrity "0.3.0-SNAPSHOT"
-                  :exclusions [com.damballa/abracad org.clojure/clojure]]
+                 ;; hmmm
+                 [prismatic/schema "1.1.12"]
                  [metosin/ring-swagger "0.26.2"]]
   :deploy-repositories {"clojars" {:sign-releases false
                                    :username :env/clojars_username
@@ -24,7 +23,8 @@
                              ;; test & dev deps
                              [clj-http "3.10.0"]
                              [ring-jetty-component "0.3.1"
-                              :exclude [org.eclipse.jetty/jetty-server]]
+                              :exclude [ring/ring-codec
+                                        org.eclipse.jetty/jetty-server]]
                              [org.eclipse.jetty/jetty-server "9.4.21.v20190926"]
                              [ring/ring-defaults "0.3.2"]
                              [ring/ring-json "0.5.0"]
