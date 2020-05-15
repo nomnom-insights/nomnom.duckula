@@ -46,13 +46,8 @@
             'exceeds-fixed-size)
 
     Schema$Type/NULL
-    Any
+    s/Any
     Schema$Type/UNION
-    (map ->map (.getTypes avro-schema))
+    (apply s/either (map ->map (.getTypes avro-schema)))
     ;; else
     {:unknown avro-schema}))
-
-
-(defn avro-errors [schema value]
-  (let [schema-as-map (->map schema)]
-    (s/check schema-as-map value)))
