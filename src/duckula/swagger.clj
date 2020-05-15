@@ -1,7 +1,8 @@
 (ns duckula.swagger
   (:require
     [duckula.avro :as avro]
-    [duckula.avro.schema :as avro.schema]))
+    [duckula.avro.schema :as avro.schema]
+    [ring.swagger.swagger2 :as rs]))
 
 
 (defn endpoint->swagger [path config]
@@ -37,5 +38,11 @@
    :paths (->> config
                :endpoints
                (map
-                (fn [[path config]] (endpoint->swagger path config)))
+                 (fn [[path config]] (endpoint->swagger path config)))
                (into {}))})
+
+
+(defn generate [config]
+  (-> config
+      config->swagger
+      rs/swagger-json))
