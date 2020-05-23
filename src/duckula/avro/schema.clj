@@ -1,9 +1,9 @@
 (ns duckula.avro.schema
-  "Generates a prismatic schema from an avro one -
+  "Generates a Prismatic Schema from an Avro schema object -
   ported from https://github.com/cddr/integrity/blob/00326c259e5ff3ab94a37ec032da5a0d08932441/src/integrity/avro.clj
-  to support union types"
+  to support union types and other features"
   (:require
-    [schema.core :as s :refer [Bool Str Any]])
+    [schema.core :as s])
   (:import
     (org.apache.avro
       Schema$Type)))
@@ -11,18 +11,25 @@
 
 (def ByteArray (Class/forName "[B"))
 
+(def kw (type :yoooo))
+
+(def any s/Any)
+
+(def string s/Str)
+(def any-map {kw any})
+
 
 (defn ->map [avro-schema]
   (condp = (.getType avro-schema)
 
     ;; Primitive types
-    Schema$Type/BOOLEAN Bool
+    Schema$Type/BOOLEAN s/Bool
     Schema$Type/INT     Integer
     Schema$Type/LONG    Long
     Schema$Type/FLOAT   Float
     Schema$Type/DOUBLE  Double
     Schema$Type/BYTES   ByteArray
-    Schema$Type/STRING  Str
+    Schema$Type/STRING  s/Str
 
     ;; Complex Types
     Schema$Type/RECORD
@@ -38,7 +45,7 @@
     [(->map (.getElementType avro-schema))]
 
     Schema$Type/MAP
-    {Str (->map (.getValueType avro-schema))}
+    {s/Str (->map (.getValueType avro-schema))}
 
     Schema$Type/FIXED
     (s/pred (fn [str-val]

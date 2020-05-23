@@ -17,8 +17,10 @@
     (log/errorf "request=%s status=failure" key))
   (on-not-found [_this key uri]
     (log/warnf "request=%s status=not-found uri=%s" key uri))
-  (track-exception [_this exception] (log/error exception))
-  (track-exception [_this exception data]
+  (track-exception
+    [_this exception] (log/error exception))
+  (track-exception
+    [_this exception data]
     (log/errorf exception "data=%s" data)))
 
 (def basic (->BasicMonitoring))
