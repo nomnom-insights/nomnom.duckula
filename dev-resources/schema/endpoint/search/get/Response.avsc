@@ -5,6 +5,7 @@
   "fields": [
     {
       "name": "id",
+      "doc" : "ID of the document",
       "type": "string"
     },
     {

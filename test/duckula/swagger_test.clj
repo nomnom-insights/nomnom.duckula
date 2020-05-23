@@ -30,7 +30,7 @@
                                      :type "object"}
                             "ErrorMetadata" {:additionalProperties {}, :type "object"}}
               :info {:title "Swagger API: no validation", :version "0.0.1"}
-              :paths {"/SOAP/foo" {:post {:description "/SOAP/foo"
+              :paths {"/SOAP/foo" {:post {:description ":no-doc:"
                                      :parameters [{:description ""
                                                    :in "body"
                                                    :name ".SOAP.foo"

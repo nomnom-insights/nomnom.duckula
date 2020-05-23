@@ -41,7 +41,7 @@
                                        :required [:status :items :message]
                                        :type "object"}}
  :info {:title "Swagger API: test-server-rpc", :version "0.0.1"}
- :paths {"/echo" {:post {:description "/echo"
+ :paths {"/echo" {:post {:description ":no-doc:"
                          :parameters [{:description ""
                                        :in "body"
                                        :name ".echo"
@@ -53,7 +53,7 @@
                                      500 {:description "Internal server error, or response couldn't be serialized according to the response schema"
                                           :schema {:$ref "#/definitions/Error"}}}
                          :summary "/echo"}}
-         "/number/multiply" {:post {:description "/number/multiply"
+         "/number/multiply" {:post {:description ""
                                     :parameters [{:description ""
                                                   :in "body"
                                                   :name "number.multiply.Request"
@@ -66,7 +66,7 @@
                                                 500 {:description "Internal server error, or response couldn't be serialized according to the response schema"
                                                      :schema {:$ref "#/definitions/Error"}}}
                                     :summary "/number/multiply"}}
-         "/number/multiply-soft" {:post {:description "/number/multiply-soft"
+         "/number/multiply-soft" {:post {:description ""
                                          :parameters [{:description ""
                                                        :in "body"
                                                        :name "number.multiply.Request"
@@ -79,7 +79,7 @@
                                                      500 {:description "Internal server error, or response couldn't be serialized according to the response schema"
                                                           :schema {:$ref "#/definitions/Error"}}}
                                          :summary "/number/multiply-soft"}}
-         "/search/test" {:post {:description "/search/test"
+         "/search/test" {:post {:description "Find all matching documents and specify the order"
                                 :parameters [{:description ""
                                               :in "body"
                                               :name "search.test.Request"
