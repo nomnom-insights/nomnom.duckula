@@ -32,3 +32,8 @@ POST http://localhost:3003/echo
 Content-type: application/json
 accept: application/json
 { "input" : "20" }
+
+# swagger get?
+GET http://localhost:3003/~docs/ui
+
+#swagger.json
