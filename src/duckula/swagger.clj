@@ -32,10 +32,10 @@
 
 (when dependencies-satisfied?
   (def error-schemas
-    (let [error avro.schema/string #_ (with-meta
+    (let [error (with-meta
                   {:message avro.schema/string
                    :error avro.schema/string
-                   :metadata avro.schema/string #_  avro.schema/any-map}
+                   :metadata avro.schema/any-map}
                   {:name "Error"})]
       {410 {:description "Message with invalid schema provided"
             :schema error}
