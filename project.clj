@@ -5,9 +5,11 @@
                  [com.stuartsierra/component "0.4.0"]
                  [nomnom/abracad "0.5.1"]
 
-                 ;; hmmm
+                 ;; Dependencies for swagger schema generators
+                 ;; and visualizing things
                  [prismatic/schema "1.1.12"]
-                 [metosin/ring-swagger "0.26.2"]]
+                 [metosin/ring-swagger "0.26.2"]
+                 [metosin/ring-swagger-ui "3.25.3"]]
   :deploy-repositories {"clojars" {:sign-releases false
                                    :username :env/clojars_username
                                    :password :env/clojars_password}}
