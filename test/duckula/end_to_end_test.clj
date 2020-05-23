@@ -85,4 +85,10 @@
       (is (= 404
              (:status response)))
       (is (= {:message "not found"}
-             (body response))))))
+             (body response)))))
+
+  (testing "swagger docs"
+    (testing "returns swagger.json"
+      (is (= 200 (:status (http.client/get "http://localhost:3003/~docs/swagger.json")))))
+    (testing "serves the Swagger UI"
+      (is (= 200 (:status (http.client/get "http://localhost:3003/~docs/ui")))))))

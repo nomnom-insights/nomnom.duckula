@@ -84,7 +84,7 @@
                                             :schema response-schema}})}}}))
 
 
-  (defn config->swagger [{:keys [name endpoints] :as _config}]
+  (defn config->swagger [{:keys [name prefix endpoints] :as _config}]
     {:swagger "2.0"
      :info {:title (str "Swagger API: " name)
             :version "0.0.1"}
@@ -93,7 +93,7 @@
      :definitions {}
      :paths (->> endpoints
                  (map
-                   (fn [[path config]] (endpoint->swagger path config)))
+                   (fn [[path config]] (endpoint->swagger (str prefix path) config)))
                  (into {}))})
 
 

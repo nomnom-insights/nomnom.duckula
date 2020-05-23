@@ -19,6 +19,7 @@
              conf))))
   (testing "endpoint with no validations"
     (let [conf (swag/generate {:name "no validation"
+                               :prefix "/SOAP"
                                :endpoints {"/foo" {:handler identity}}})]
       (is (= {:consumes ["application/json"]
               :definitions {"Error" {:additionalProperties false
@@ -29,10 +30,10 @@
                                      :type "object"}
                             "ErrorMetadata" {:additionalProperties {}, :type "object"}}
               :info {:title "Swagger API: no validation", :version "0.0.1"}
-              :paths {"/foo" {:post {:description "/foo"
+              :paths {"/SOAP/foo" {:post {:description "/SOAP/foo"
                                      :parameters [{:description ""
                                                    :in "body"
-                                                   :name ".foo"
+                                                   :name ".SOAP.foo"
                                                    :required true
                                                    :schema {}}]
                                      :responses {200 {:description ":no-doc:"
@@ -41,7 +42,7 @@
                                                       :schema {:$ref "#/definitions/Error"}}
                                                  500 {:description "Internal server error, or response couldn't be serialized according to the response schema"
                                                       :schema {:$ref "#/definitions/Error"}}}
-                                     :summary "/foo"}}}
+                                     :summary "/SOAP/foo"}}}
               :produces ["application/json"]
               :swagger "2.0"}
              conf)))))
