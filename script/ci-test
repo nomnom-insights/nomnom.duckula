@@ -10,6 +10,7 @@ LEIN_FAST_TRAMPOLINE=1 lein trampoline cloverage \
                     --no-text \
                     --no-html \
                     --no-summary \
+                    --ns-exclude-regex ".*basic.*" \
                     -o $PWD
 testRes=$?
 mkdir -p coverage
