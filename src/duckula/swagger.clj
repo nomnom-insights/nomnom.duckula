@@ -37,7 +37,7 @@
                    :error avro.schema/string
                    :metadata avro.schema/any-map}
                   {:name "Error"})]
-      {410 {:description "Message with invalid schema provided"
+      {410 {:description "Request data didn't conform to the request data schema"
             :schema error}
        500 {:description "Internal server error, or response couldn't be serialized according to the response schema"
             :schema error}}))
@@ -75,11 +75,12 @@
                             {:name (make-schema-name (or response path))})]
       {path {:post {:summary path
                     :description path
-                    :parameters {:description (when request-avro-schema
-                                                (.getDoc request-avro-schema))
+                    :parameters {;:description (if request-avro-schema (.getDoc request-avro-schema) ":no-doc:")
                                  :body request-schema}
                     :responses (merge error-schemas
-                                      {200 {:description (when response-avro-schema (.getDoc response-avro-schema))
+                                      {200 {:description (if response-avro-schema
+                                                           (.getDoc response-avro-schema)
+                                                           ":no-doc:")
                                             :schema response-schema}})}}}))
 
 

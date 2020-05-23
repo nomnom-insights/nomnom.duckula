@@ -1,8 +1,10 @@
 (ns duckula.swagger-test
   (:require
-   [clojure.test :refer [deftest is testing]]
-   [duckula.swagger :as swag]
-   [duckula.test.server :as test.server]))
+    [clojure.edn :as edn]
+    [clojure.java.io :as io]
+    [clojure.test :refer [deftest is testing]]
+    [duckula.swagger :as swag]
+    [duckula.test.server :as test.server]))
 
 
 (deftest it-generates-a-swagger-config
@@ -33,8 +35,9 @@
                                                    :name ".foo"
                                                    :required true
                                                    :schema {}}]
-                                     :responses {200 {:description "", :schema {}}
-                                                 410 {:description "Message with invalid schema provided"
+                                     :responses {200 {:description ":no-doc:"
+                                                      :schema {}}
+                                                 410 {:description "Request data didn't conform to the request data schema"
                                                       :schema {:$ref "#/definitions/Error"}}
                                                  500 {:description "Internal server error, or response couldn't be serialized according to the response schema"
                                                       :schema {:$ref "#/definitions/Error"}}}
@@ -43,7 +46,12 @@
               :swagger "2.0"}
              conf)))))
 
+
+(def test-server-swagger
+  (edn/read-string (slurp (io/resource "duckula/test_swagger.edn"))))
+
+
 (deftest working-server-example-config
   (let [conf (swag/generate test.server/config)]
-    (is (= :y
+    (is (= test-server-swagger
            conf))))
