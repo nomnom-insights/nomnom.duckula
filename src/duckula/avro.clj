@@ -1,33 +1,44 @@
 (ns duckula.avro
-  (:require [abracad.avro.codec :as codec]
-            [abracad.io :as io]))
+  (:require
+    [abracad.avro.codec :as codec]
+    [abracad.io :as io]))
+
 
 (def ^:dynamic *default-path* "schema/endpoint/")
 (def ^:dynamic *default-extension* ".avsc")
 
-(defn name->path [n]
+
+(defn name->path
+  "If `n` is not a map - turn it into the default path to a schema file
+  as defined by the prefix `*default-path*` and extension `*default-extension*`"
+  [n]
   (cond
+    (map? n) n
     (string? n) (str *default-path* n *default-extension*)
     (sequential? n) (mapv name->path n)))
 
-(defn load-schemas [names]
-  (cond
-    (string? names) (-> names
-                        io/read-json-resource
-                        codec/parse-schema*)
-    (sequential? names) (->> names
-                             (mapv io/read-json-resource)
-                             (apply codec/parse-schema*))))
 
-(defn validate-with-schema [schema input]
+(defn load-schemas
+  [& schemas]
+  (when (seq schemas)
+    (apply codec/parse-schema* (map #(cond
+                                       (map? %) %
+                                       (string? %) (io/read-json-resource %)
+                                       (sequential? %) (map io/read-json-resource %))
+                                    (flatten schemas)))))
+
+
+(defn validate-with-schema
+  [schema input]
   (if schema
     (do
       (codec/->avro schema input)
       input)
     input))
 
+
 (defn make-validator
-  "Returns a validator function for given Avro schema path, or a list of
+  "Returns a validator function for given Avro schema map, single schema path, or a list of
   schema paths (will construct a composite schema).
   Attaches schema path(s) to the function as metadata
   Options:
@@ -35,10 +46,11 @@
   - soft-validate? - if set to true, it will attach a boolean flag to the function to indicate that
                     the function user can ignore validation error and return the input data (even if invalid)
                     This is useful, if you want to roll out validation, but not break on invalid payloads"
-  [schema-names {:keys [mangle-names? soft-validate?]}]
-  {:pre [(or (string? schema-names)
-             (sequential? schema-names))]}
-  (let [schema (load-schemas schema-names)
+  [schema {:keys [mangle-names? soft-validate?]}]
+  {:pre [(or (string? schema)
+             (map? schema)
+             (sequential? schema))]}
+  (let [schema (load-schemas schema)
         validator-fn (if mangle-names?
                        (fn [input]
                          (validate-with-schema schema input))
@@ -53,16 +65,17 @@
                            (validate-with-schema schema input))))]
     (with-meta
       validator-fn
-      {:soft-validate? soft-validate? :schema-name schema-names})))
+      {:soft-validate? soft-validate? :schema-name schema})))
+
 
 (defn validator
   "Creates a validator function for given schema paths.
   Will resolve these names to resource paths.
   `schema-name-or-names` can be a string or list of strings.
   See `make-validator` for options explanation"
-  ([schema-name-or-names]
-   (validator schema-name-or-names {}))
-  ([schema-name-or-names opts]
-   (if schema-name-or-names
-     (make-validator (name->path schema-name-or-names) opts)
+  ([schema]
+   (validator schema {}))
+  ([schema opts]
+   (if schema
+     (make-validator (name->path schema) opts)
      identity)))
