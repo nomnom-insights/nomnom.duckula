@@ -21,7 +21,10 @@
 
   :profiles {:dev
              {:resource-paths ["dev-resources"]
-              :dependencies [[org.clojure/tools.logging "0.5.0"]
+              :global-vars {*warn-on-reflection* true}
+              :dependencies [[org.clojure/tools.logging "1.1.0"]
+                             [ch.qos.logback/logback-classic "1.2.3"
+                  :exclusions [org.slf4j/slf4j-api]]
                              ;; test & dev deps
                              [clj-http "3.10.0"]
                              [ring-jetty-component "0.3.1"

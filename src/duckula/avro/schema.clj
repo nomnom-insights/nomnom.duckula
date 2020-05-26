@@ -5,18 +5,18 @@
   (:require
     [schema.core :as s])
   (:import
+      (clojure.lang Keyword)
+
     (org.apache.avro
       Schema$Type)))
 
 
 (def ByteArray (Class/forName "[B"))
 
-(def kw (type :yoooo))
-
 (def any s/Any)
 
 (def string s/Str)
-(def any-map {kw any})
+(def any-map {Keyword any})
 
 
 (defn ->map [avro-schema]

@@ -1,11 +1,12 @@
 (ns duckula.swagger
   "Provides a Ring middleware which can serve swagger.json generated from the API config
-  as well as Swagger UI to view it"
+  as well as Swagger UI to view it.
+  Note that we're ignoring reflection warnings as they don't matter in dev mode, and in production
+  all schemas are (should be) parsed only once."
   (:require
     [cheshire.core :as json]
     [clojure.string :as string]
     [duckula.avro :as avro]
-    ;; These should optional
     [duckula.avro.schema :as avro.schema]
     [duckula.handler]
     [ring.swagger.swagger-ui :as swagger.ui]
