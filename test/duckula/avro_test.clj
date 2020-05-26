@@ -14,7 +14,7 @@
                       {:mangle-names? false
                        :soft-validate? false})]
       (is (fn? validator))
-      (is (= {:schema-name "schema/endpoint/search/test/Response.avsc"
+      (is (= {:schema-name "search.test.Response"
               :soft-validate? false}
              (meta validator)))))
   (testing "validate-with-underscore"

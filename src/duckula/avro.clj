@@ -1,7 +1,21 @@
 (ns duckula.avro
   (:require
     [abracad.avro.codec :as codec]
-    [abracad.io :as io]))
+    [abracad.avro.util :as abracad.util]
+    [abracad.io :as io]
+    [cheshire.generate :as json.generate])
+  (:import
+    (com.fasterxml.jackson.core.json
+      WriterBasedJsonGenerator)
+    (org.apache.avro
+      Schema$RecordSchema)))
+
+;; Ensure that when returning an avro schema in the error messages
+;; we don't send the raw object, just the name
+(json.generate/add-encoder Schema$RecordSchema
+                           (fn [s json-generator]
+                             (.writeString ^WriterBasedJsonGenerator json-generator
+                                           (.getFullName ^Schema$RecordSchema s))))
 
 
 (def ^:dynamic *default-path* "schema/endpoint/")
@@ -50,10 +64,10 @@
   {:pre [(or (string? schema)
              (map? schema)
              (sequential? schema))]}
-  (let [schema (load-schemas schema)
+  (let [avro-schema (load-schemas schema)
         validator-fn (if mangle-names?
                        (fn [input]
-                         (validate-with-schema schema input))
+                         (validate-with-schema avro-schema input))
                        ;; in order to support underscore in json payload we need to disable mangle-names
                        ;; this means we can't support dashes in any of the keys
                        ;; in json payload (everything needs to use underscore !!!)
@@ -61,11 +75,13 @@
                        ;; keys & values you can set optional-conf mangle-names? to true
                        ;; this is just local setting and won't effect avro functionality outside of this fn
                        (fn [input]
-                         (with-bindings {#'abracad.avro.util/*mangle-names* false}
-                           (validate-with-schema schema input))))]
+                         (with-bindings {#'abracad.util/*mangle-names* false}
+                           (validate-with-schema avro-schema input))))
+        validator-meta {:soft-validate? soft-validate?
+                        :schema-name (.getFullName ^org.apache.avro.Schema$RecordSchema avro-schema)}]
     (with-meta
       validator-fn
-      {:soft-validate? soft-validate? :schema-name schema})))
+      validator-meta)))
 
 
 (defn validator

@@ -44,7 +44,7 @@
  :paths {"/echo" {:post {:description ":no-doc:"
                          :parameters [{:description ""
                                        :in "body"
-                                       :name ".echo"
+                                       :name "/echo"
                                        :required true
                                        :schema {}}]
                          :responses {200 {:description ":no-doc:", :schema {}}

@@ -5,13 +5,14 @@
     [cheshire.core :as json]
     [clojure.string :as string]
     [duckula.avro :as avro]
-    [duckula.handler]
-
     ;; These should optional
     [duckula.avro.schema :as avro.schema]
+    [duckula.handler]
     [ring.swagger.swagger-ui :as swagger.ui]
-    [ring.swagger.swagger2 :as rs]))
-
+    [ring.swagger.swagger2 :as rs])
+  (:import
+    (org.apache.avro
+      Schema$RecordSchema)))
 
 
 (def error-schemas
@@ -25,29 +26,37 @@
      500 {:description "Internal server error, or response couldn't be serialized according to the response schema"
           :schema error}}))
 
-(defn make-schema-name [req-schema-path]
-  (string/replace req-schema-path "/" "."))
+
+(defn make-schema-name
+  [req-schema-path]
+  (if (string? req-schema-path)
+    req-schema-path
+    (.getFullName req-schema-path)))
 
 
-(defn make-definition [{:keys [type avro-schema-path path]}]
-  (let [avro-schema (when avro-schema-path
-                      (-> avro-schema-path avro/name->path avro/load-schemas))
+(defn make-definition
+  [{:keys [avro-schema path]}]
+  (let [avro-schema (when avro-schema
+                      (avro/load-schemas (avro/name->path avro-schema)))
         schema (with-meta
                  (if avro-schema
                    (avro.schema/->map avro-schema)
                    avro.schema/any)
-                 {:name (make-schema-name (or avro-schema-path path))})
+                 {:name (make-schema-name (or avro-schema path))})
         description (if avro-schema
-                      (.getDoc avro-schema)
+                      (.getDoc ^Schema$RecordSchema avro-schema)
                       ":no-doc:")]
     {:schema schema :description description}))
 
 
-(defn endpoint->swagger [path config]
+(defn endpoint->swagger
+  [path config]
   (let [{:keys [request response]} config
-        request-config (make-definition {:avro-schema-path request
+        request-config (make-definition {:avro-schema request
+                                         :type ::request
                                          :path path})
-        response-config (make-definition {:avro-schema-path response
+        response-config (make-definition {:avro-schema response
+                                          :type ::response
                                           :path path})]
     {path {:post {:summary path
                   :description (or (:description request-config) "")
@@ -57,7 +66,8 @@
                                           :schema (:schema response-config)}})}}}))
 
 
-(defn config->swagger [{:keys [name prefix endpoints] :as _config}]
+(defn config->swagger
+  [{:keys [name prefix endpoints] :as _config}]
   {:swagger "2.0"
    :info {:title (str "Swagger API: " name)
           :version "0.0.1"}
@@ -66,11 +76,12 @@
    :definitions {}
    :paths (->> endpoints
                (map
-                (fn [[path config]] (endpoint->swagger (str prefix path) config)))
+                 (fn [[path config]] (endpoint->swagger (str prefix path) config)))
                (into {}))})
 
 
-(defn generate [config]
+(defn generate
+  [config]
   (-> config
       config->swagger
       rs/swagger-json))
@@ -81,7 +92,8 @@
   swagger json, based on the Duckula config"
   [config]
   (let [swagger-json (generate config)]
-    (fn swagger-json-handler [_req]
+    (fn swagger-json-handler
+      [_req]
       {:status 200
        :body (json/generate-string swagger-json)
        :headers {"content-type" "application/json"}})))
@@ -94,7 +106,12 @@
 (def swagger-json-path "/~docs/swagger.json")
 
 
-(defn with-docs [api-config]
+(defn with-docs
+  "Builds a Ring handler - just like reqular duckula.handler
+  but also attaches the following routes (by default):
+  /~docs/ui - to load the bundled Swagger UI
+  /~docs/swagger.json - to return swagger.json built from Duckula config"
+  [api-config]
   (let [ui-handler (swagger-ui-handler {:path ui-prefix
                                         :swagger-docs swagger-json-path})
         swagger-json-handler (build-handler api-config)
