@@ -3,6 +3,7 @@
   (:require [duckula.test.component.http-server :as http-server]
             duckula.handler
             duckula.swagger
+            duckula.middleware
             [duckula.component.basic-monitoring :as monitoring]
             [duckula.test.handler.echo :as handler.echo]
             [duckula.test.handler.number :as handler.number]
@@ -39,7 +40,7 @@
     (reset! server (component/start sys))))
 
 (defn start! []
-  (start-with-handler! (duckula.swagger/with-docs config)))
+  (start-with-handler! (duckula.middleware/wrap-handler (duckula.swagger/with-docs config))))
 
 (defn stop! []
   (swap! server component/stop))

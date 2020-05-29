@@ -75,8 +75,12 @@ Then in your Component system:
    ;; see dev-resources dir for a working example
    ;; at the very least, your ring middleware stack needs to handle
    ;; JSON parsing from the POST body
+   ;; also, Duckula assumes that Components are included in the :component
+   ;; key of the request map
+   ;; You can use duckula.middleware/with-monitoring middleware for that
    (duckula.test.component.http-server/create
-    (duckula.handler/build config)
+     (duckula.middleware/wrap-handler
+      (duckula.handler/build config))
     [:db :monitoring]
     {:port 3000 :name "api"})))
 
@@ -167,6 +171,7 @@ See it here: https://github.com/nomnom-insights/nomnom.duckula.monitoring
   "Test HTTP server"
   (:require [duckula.test.component.http-server :as http-server]
             duckula.handler
+            duckula.middleware
             [duckula.component.basic-monitoring :as monitoring]
             [duckula.handler.echo :as handler.echo]
             [duckula.handler.number :as handler.number]
@@ -195,7 +200,7 @@ See it here: https://github.com/nomnom-insights/nomnom.duckula.monitoring
   (let [sys (component/map->SystemMap
              (merge
               {:monitoring monitoring/basic}
-              (http-server/create (duckula.handler/build config)
+              (http-server/create (duckula.middleare/wrap-handler (duckula.handler/build config))
                                   [:monitoring]
                                   {:name "test-rpc-server"
                                    :port 3003})))]
@@ -227,11 +232,35 @@ An example of how to add Duckula powered routes to an existing Compojure-based a
 ;; assumes we're using compojure
 
 (defroutes all
-  (context "/groups" [] (duckula.handler/build config))
+  (context "/groups" [] (duckula.middleware/wrap-handler (duckula.handler/build config)))
   (context "/dashboards" [] service.http.handlers.dashboards/routes))
 
 
 ```
+
+## Swagger  <sup>beta</sup>
+
+Duckula can generate [Swagger](https://swagger.io) JSON definition and serve the Swagger UI.
+
+To get started, swap how your API handler is built from:
+
+```clojure
+
+(def api (duckula.middleware/wrap-handler (duckula.handler/build config)))
+```
+
+
+to
+
+```clojure
+
+(def api (duckula.middleware/wrap-handler (duckula.swagger/with-docs config)))
+```
+
+And restart your server.
+
+The UI is now accessible under `/~docs/ui` and the API definition can be downloaded from `/~docs/swagger.json`
+
 
 # Changelog
 
