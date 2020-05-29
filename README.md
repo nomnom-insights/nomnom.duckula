@@ -30,8 +30,9 @@ Duckula is a synchronous equivalent of [Bunnicula](https://github.com/nomnom-ins
 
 ## Roadmap
 
+- [x] exposes (optionally) endpoint with API documentation based on Avro's doc properites (schemas and schema fields can be documented) in the Swagger/OpenAPI format
 - [ ] can talk Avro (input and output) via content type negotiation
-- [ ] exposes (optionally) endpoint with API documentation based on Avro's doc properites (schemas and schema fields can be documented) in the OpenAPI format
+
 - [ ] equivalent clj-http middleware for building type-safe clients
 
 ## Rationale
@@ -263,6 +264,10 @@ The UI is now accessible under `/~docs/ui` and the API definition can be downloa
 
 
 # Changelog
+
+## [0.6.0-SNAPSHOT] - **Unreleased**
+
+Adds [Swagger](https://swagger.io) support, allows for defining inline Avro schemas in the API config and ships witha minimal Ring middleware for handling JSON requests.
 
 ## [0.5.3] - 2020-03-25
 
