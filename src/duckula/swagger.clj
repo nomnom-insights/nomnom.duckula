@@ -36,7 +36,7 @@
 
 
 (defn make-definition
-  [{:keys [avro-schema path]}]
+  [{:keys [avro-schema path mangle-names?]}]
   (let [avro-schema (when avro-schema
                       (avro/load-schemas (avro/name->path avro-schema)))
         schema (with-meta
@@ -52,11 +52,13 @@
 
 (defn endpoint->swagger
   [path config]
-  (let [{:keys [request response]} config
+  (let [{:keys [request response mangle-names?]} config
         request-config (make-definition {:avro-schema request
+                                         :mangle-names? mangle-names?
                                          :type ::request
                                          :path path})
         response-config (make-definition {:avro-schema response
+                                          :mangle-names? mangle-names?
                                           :type ::response
                                           :path path})]
     {path {:post {:summary path
@@ -68,7 +70,7 @@
 
 
 (defn config->swagger
-  [{:keys [name prefix endpoints] :as _config}]
+  [{:keys [name prefix endpoints mangle-names?] :as _config}]
   {:swagger "2.0"
    :info {:title (str "Swagger API: " name)
           :version "0.0.1"}
@@ -77,7 +79,8 @@
    :definitions {}
    :paths (->> endpoints
                (map
-                 (fn [[path config]] (endpoint->swagger (str prefix path) config)))
+                (fn [[path config]] (endpoint->swagger (str prefix path)
+                                                       (assoc config :mangle-names? mangle-names))))
                (into {}))})
 
 
