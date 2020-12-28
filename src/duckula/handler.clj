@@ -13,16 +13,17 @@
   - request input validator
   - request output validator
   Validators use Avro to ensure passed in data is ok"
-  [{:keys [prefix endpoints mangle-names?]}]
-  (->> endpoints
-       (map (fn [[path conf]]
-              (hash-map (str prefix path)
-                        (-> conf
-                            (update :request #(duckula.avro/validator % {:mangle-names? mangle-names?
-                                                                         :soft-validate? (:soft-validate? conf)}))
-                            (update :response #(duckula.avro/validator % {:mangle-names? mangle-names?
-                                                                          :soft-validate? (:soft-validate? conf)}))))))
-       (into {})))
+  [{:keys [prefix endpoints mangle-names? kebab-case-names? snake-case-names?]}]
+  (let [mangle-names? (or mangle-names? kebab-case-names? (not snake-case-names?))]
+    (->> endpoints
+         (map (fn [[path conf]]
+                (hash-map (str prefix path)
+                          (-> conf
+                              (update :request #(duckula.avro/validator % {:mangle-names? mangle-names?
+                                                                           :soft-validate? (:soft-validate? conf)}))
+                              (update :response #(duckula.avro/validator % {:mangle-names? mangle-names?
+                                                                            :soft-validate? (:soft-validate? conf)}))))))
+         (into {}))))
 
 (defn build-metric-keys
   "For each endpoint it constructs a list of metric keys

@@ -41,7 +41,8 @@
                       (avro/load-schemas (avro/name->path avro-schema)))
         schema (with-meta
                  (if avro-schema
-                   (avro.schema/->map avro-schema)
+                   (avro.schema/->map {:avro-schema avro-schema
+                                       :mangle-names? mangle-names?})
                    avro.schema/any)
                  {:name (make-schema-name (or avro-schema path))})
         description (if avro-schema
@@ -70,18 +71,19 @@
 
 
 (defn config->swagger
-  [{:keys [name prefix endpoints mangle-names?] :as _config}]
-  {:swagger "2.0"
-   :info {:title (str "Swagger API: " name)
-          :version "0.0.1"}
-   :produces ["application/json"]
-   :consumes ["application/json"]
-   :definitions {}
-   :paths (->> endpoints
-               (map
-                (fn [[path config]] (endpoint->swagger (str prefix path)
-                                                       (assoc config :mangle-names? mangle-names))))
-               (into {}))})
+  [{:keys [name prefix endpoints mangle-names? kebab-case-names? snake-case-names?] :as _config}]
+  (let [mangle-names? (or mangle-names? kebab-case-names? (not snake-case-names?))]
+    {:swagger "2.0"
+     :info {:title (str "Swagger API: " name)
+            :version "0.0.1"}
+     :produces ["application/json"]
+     :consumes ["application/json"]
+     :definitions {}
+     :paths (->> endpoints
+                 (map
+                  (fn [[path config]] (endpoint->swagger (str prefix path)
+                                                         (assoc config :mangle-names? mangle-names?))))
+                 (into {}))}))
 
 
 (defn generate

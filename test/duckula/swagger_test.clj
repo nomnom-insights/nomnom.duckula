@@ -48,13 +48,9 @@
              conf)))))
 
 
-(def test-server-swagger
-  (edn/read-string (slurp (io/resource "duckula/test_swagger.edn"))))
-
-
 (deftest working-server-example-config
   (let [conf (swag/generate test.server/config)]
-    (is (= test-server-swagger
+    (is (= (edn/read-string (slurp (io/resource "duckula/test_swagger.edn")))
            conf))))
 
 
@@ -63,32 +59,71 @@
                              :endpoints {
                                          "/test" { :request {:type "record"
                                                              :name "test.Empty"
-                                                             :fields [ {:name "status" :type "string" }]}}}})]
+                                                             :fields [ {:name "exit_status"
+                                                                        :type "string" }]}}}})]
     (is (= {:consumes ["application/json"]
-    :definitions {"Error" {:additionalProperties false
-                           :properties {:error {:type "string"}
-                                        :message {:type "string"}
-                                        :metadata {:$ref "#/definitions/ErrorMetadata"}}
-                           :required [:message :error :metadata]
-                           :type "object"}
-                  "ErrorMetadata" {:additionalProperties {}, :type "object"}
-                  "test.Empty" {:additionalProperties false
-                                :properties {:status {:type "string"}}
-                                :required [:status]
-                                :type "object"}}
-    :info {:title "Swagger API: empty", :version "0.0.1"}
-    :paths {"/test" {:post {:description ""
-                            :parameters [{:description ""
-                                          :in "body"
-                                          :name "test.Empty"
-                                          :required true
-                                          :schema {:$ref "#/definitions/test.Empty"}}]
-                            :responses {200 {:description ":no-doc:", :schema {}}
-                                        410 {:description "Request data didn't conform to the request data schema"
-                                             :schema {:$ref "#/definitions/Error"}}
-                                        500 {:description "Internal server error, or response couldn't be serialized according to the response schema"
-                                             :schema {:$ref "#/definitions/Error"}}}
-                            :summary "/test"}}}
-    :produces ["application/json"]
-    :swagger "2.0"}
+            :definitions {"Error" {:additionalProperties false
+                                   :properties {:error {:type "string"}
+                                                :message {:type "string"}
+                                                :metadata {:$ref "#/definitions/ErrorMetadata"}}
+                                   :required [:message :error :metadata]
+                                   :type "object"}
+                          "ErrorMetadata" {:additionalProperties {}, :type "object"}
+                          "test.Empty" {:additionalProperties false
+                                        :properties {:exit_status {:type "string"}}
+                                        :required [:exit_status]
+                                        :type "object"}}
+            :info {:title "Swagger API: empty", :version "0.0.1"}
+            :paths {"/test" {:post {:description ""
+                                    :parameters [{:description ""
+                                                  :in "body"
+                                                  :name "test.Empty"
+                                                  :required true
+                                                  :schema {:$ref "#/definitions/test.Empty"}}]
+                                    :responses {200 {:description ":no-doc:", :schema {}}
+                                                410 {:description "Request data didn't conform to the request data schema"
+                                                     :schema {:$ref "#/definitions/Error"}}
+                                                500 {:description "Internal server error, or response couldn't be serialized according to the response schema"
+                                                     :schema {:$ref "#/definitions/Error"}}}
+                                    :summary "/test"}}}
+            :produces ["application/json"]
+            :swagger "2.0"}
+           conf))))
+
+
+(deftest name-mangling
+  (let [conf (swag/generate {:name "empty"
+                                        ; :mangle-names? true
+                             :snake-case-names? true
+                             :endpoints {
+                                         "/test" { :request {:type "record"
+                                                             :name "test.Empty"
+                                                             :fields [ {:name "status_field" :type "string" }]}}}})]
+    (is (= {:consumes ["application/json"]
+            :definitions {"Error" {:additionalProperties false
+                                   :properties {:error {:type "string"}
+                                                :message {:type "string"}
+                                                :metadata {:$ref "#/definitions/ErrorMetadata"}}
+                                   :required [:message :error :metadata]
+                                   :type "object"}
+                          "ErrorMetadata" {:additionalProperties {}, :type "object"}
+                          "test.Empty" {:additionalProperties false
+                                        :properties {:status-field {:type "string"}}
+                                        :required [:status-field]
+                                        :type "object"}}
+            :info {:title "Swagger API: empty", :version "0.0.1"}
+            :paths {"/test" {:post {:description ""
+                                    :parameters [{:description ""
+                                                  :in "body"
+                                                  :name "test.Empty"
+                                                  :required true
+                                                  :schema {:$ref "#/definitions/test.Empty"}}]
+                                    :responses {200 {:description ":no-doc:", :schema {}}
+                                                410 {:description "Request data didn't conform to the request data schema"
+                                                     :schema {:$ref "#/definitions/Error"}}
+                                                500 {:description "Internal server error, or response couldn't be serialized according to the response schema"
+                                                     :schema {:$ref "#/definitions/Error"}}}
+                                    :summary "/test"}}}
+            :produces ["application/json"]
+            :swagger "2.0"}
            conf))))
