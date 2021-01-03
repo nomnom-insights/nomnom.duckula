@@ -2,7 +2,6 @@
   "Default Duckula handler. It talks JSON
   but can validate requests with provided Avro schemas"
   (:require
-    [cheshire.core :as json]
     [clojure.string :as s]
     [clojure.tools.logging :as log]
     [duckula.avro]
@@ -23,13 +22,17 @@
   [{:keys [prefix endpoints] :as config}]
   (let [mangle-names? (use-kebab-case? config)]
     (->> endpoints
-         (map (fn [[path conf]]
+         (map (fn route-builder [[path conf]]
                 (hash-map (str prefix path)
-                          (-> conf
-                              (update :request #(duckula.avro/validator % {:mangle-names? mangle-names?
-                                                                           :soft-validate? (:soft-validate? conf)}))
-                              (update :response #(duckula.avro/validator % {:mangle-names? mangle-names?
-                                                                            :soft-validate? (:soft-validate? conf)}))))))
+                          (let [validator-opts  {:mangle-names? mangle-names?
+                                                 :soft-validate? (:soft-validate? conf)}]
+                            (-> conf
+                                (update :request
+                                        (fn request-validator [schema]
+                                          (duckula.avro/validator schema validator-opts)))
+                                (update :response
+                                        (fn response-validator [schema]
+                                          (duckula.avro/validator schema validator-opts))))))))
          (into {}))))
 
 
@@ -43,7 +46,7 @@
   test-api.some.endpoint.failure"
   [{:keys [endpoints prefix] :as config}]
   (->> endpoints
-       (map (fn [[path _conf]]
+       (map (fn metric-key-builder [[path _conf]]
               (let [metric-key (str (:name config) (s/replace (str prefix path) \/ \.))
                     success-key (str metric-key ".success")
                     error-key (str metric-key ".error")
@@ -61,8 +64,7 @@
 
 
 (defn not-found-404 [& _]
-  {:body (json/generate-string {:message "not found"})
-   :headers {"content-type" "application/json"}
+  {:body  {:message "not found"}
    :status 404})
 
 
@@ -107,7 +109,7 @@ It depends on a component implementing  duckula.prococol/Monitoring protocol
   [config]
   (let [routes (build-route-map config)
         metrics (build-metric-keys config)]
-    (fn [{:keys [uri component headers body] :as request}]
+    (fn wrapped-handler [{:keys [uri component headers body] :as request}]
       (let [{:keys [monitoring]} component
             request-fns (get routes uri)
             request-validator (get request-fns :request)
@@ -124,9 +126,7 @@ It depends on a component implementing  duckula.prococol/Monitoring protocol
                 (if ok?
                   (monitoring/on-success monitoring success-key {:body body :status status})
                   (monitoring/on-error monitoring error-key))
-                (-> response
-                    (assoc-in [:headers "content-type"] "application/json")
-                    (update :body json/generate-string)))
+                 response)
               (catch Exception err
                 (monitoring/on-failure monitoring failure-key)
                 (let [{:keys [validation-type] :as metadata} (ex-data err)
@@ -135,14 +135,13 @@ It depends on a component implementing  duckula.prococol/Monitoring protocol
                                   metadata
                                   (select-keys request [:uri :host :request-host]))]
                   (monitoring/track-exception monitoring  err to-report)
-                  {:body (json/generate-string
-                           {:message "Request failed"
+                  {:body {:message "Request failed"
                             :error (.getMessage err)
-                            :metadata metadata})
+                            :metadata metadata}
                    :status (if (= ::request validation-type)
                              410 ; input failure
                              500) ; server failure
-                   :headers {"content-type" "application/json"}})))
+                   })))
             (do
               (monitoring/on-not-found monitoring error-key uri)
               (not-found-404))))))))

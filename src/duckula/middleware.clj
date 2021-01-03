@@ -10,11 +10,10 @@
   "Wraps the ring request handler (most likely one built by duckula.handler
   and adds required JSON handling middlewares"
   [handler-fn]
-  (->
-   ; ring-json/wrap-json-response
-    handler-fn
-    (ring-json/wrap-json-body {:keywords? true})
-    (ring-defaults/wrap-defaults ring-defaults/api-defaults)))
+  (-> handler-fn
+      (ring-json/wrap-json-body {:keywords? true})
+      (ring-defaults/wrap-defaults ring-defaults/api-defaults)
+      (ring-json/wrap-json-response)))
 
 
 (defn with-monitoring
