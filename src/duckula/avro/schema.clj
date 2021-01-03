@@ -10,6 +10,7 @@
       Keyword)
     (org.apache.avro
       Schema
+      Schema$Field
       Schema$Type)))
 
 
@@ -22,7 +23,7 @@
 
 
 (defn ->map [{:keys [avro-schema mangle-names?]}]
-  (condp = (.getType avro-schema)
+  (condp = (.getType ^Schema avro-schema)
 
     ;; Primitive types
     Schema$Type/BOOLEAN s/Bool
@@ -40,32 +41,33 @@
                                         (-> key (str/replace \_ \-) keyword)
                                         (keyword key))]
                                 [k val]))
-                            (map #(.name %) (.getFields avro-schema))
-                            (map #(->map {:avro-schema (.schema %) :mangle-names? mangle-names?})
-                                 (.getFields  avro-schema))))
+                            (map #(.name ^Schema$Field %) (.getFields ^Schema avro-schema))
+                            (map #(->map {:avro-schema (.schema ^Schema$Field %)
+                                          :mangle-names? mangle-names?})
+                                 (.getFields ^Schema avro-schema))))
 
     Schema$Type/ENUM
-    (apply s/enum (->>  (.getEnumSymbols avro-schema)
-                        (map (fn [enum]
-                               (if mangle-names?
-                                 (str/replace enum \_ \-)
-                                 enum)))))
+    (apply s/enum (map (fn [enum]
+                         (if mangle-names?
+                           (str/replace enum \_ \-)
+                           enum))
+                       (.getEnumSymbols ^Schema avro-schema)))
 
     Schema$Type/ARRAY
-    [(->map {:avro-schema (.getElementType avro-schema) :mangle-names? mangle-names?})]
+    [(->map {:avro-schema (.getElementType ^Schema avro-schema) :mangle-names? mangle-names?})]
 
     Schema$Type/MAP
-    {s/Str (->map {:avro-schema  (.getValueType avro-schema) :mangle-names? mangle-names?})}
+    {s/Str (->map {:avro-schema  (.getValueType ^Schema avro-schema) :mangle-names? mangle-names?})}
 
     Schema$Type/FIXED
     (s/pred (fn [str-val]
-              (<= (.getFixedSize avro-schema) (count str-val)))
+              (<= (.getFixedSize ^Schema avro-schema) (count str-val)))
             'exceeds-fixed-size)
 
     Schema$Type/NULL
     s/Any
     Schema$Type/UNION
     (apply s/either (map #(->map {:avro-schema %
-                                  :mangle-names? mangle-names?}) (.getTypes avro-schema)))
+                                  :mangle-names? mangle-names?}) (.getTypes ^Schema avro-schema)))
     ;; else
     {:unknown avro-schema}))

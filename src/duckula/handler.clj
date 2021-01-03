@@ -126,7 +126,7 @@ It depends on a component implementing  duckula.prococol/Monitoring protocol
                 (if ok?
                   (monitoring/on-success monitoring success-key {:body body :status status})
                   (monitoring/on-error monitoring error-key))
-                 response)
+                response)
               (catch Exception err
                 (monitoring/on-failure monitoring failure-key)
                 (let [{:keys [validation-type] :as metadata} (ex-data err)
@@ -136,8 +136,8 @@ It depends on a component implementing  duckula.prococol/Monitoring protocol
                                   (select-keys request [:uri :host :request-host]))]
                   (monitoring/track-exception monitoring  err to-report)
                   {:body {:message "Request failed"
-                            :error (.getMessage err)
-                            :metadata metadata}
+                          :error (.getMessage err)
+                          :metadata metadata}
                    :status (if (= ::request validation-type)
                              410 ; input failure
                              500) ; server failure

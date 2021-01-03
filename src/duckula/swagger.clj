@@ -13,6 +13,7 @@
     [ring.swagger.swagger2 :as rs])
   (:import
     (org.apache.avro
+      Schema
       Schema$RecordSchema)))
 
 
@@ -32,7 +33,7 @@
   [req-schema-path]
   (if (string? req-schema-path)
     req-schema-path
-    (.getFullName req-schema-path)))
+    (.getFullName ^Schema req-schema-path)))
 
 
 (defn make-definition
