@@ -91,14 +91,23 @@
            conf))))
 
 
-(deftest name-mangling
+(deftest name-mangling-in-docs
   (let [conf (swag/generate {:name "empty"
-                                        ; :mangle-names? true
-                             :snake-case-names? true
+                             :kebab-case-names? true
+                             ;; :same as:
+                             ;; mangle-names? true
+                             ;; or
+                             ;; snake-case-names? false
                              :endpoints {
                                          "/test" { :request {:type "record"
                                                              :name "test.Empty"
-                                                             :fields [ {:name "status_field" :type "string" }]}}}})]
+                                                             :fields [
+                                                                      {:name "status_code"
+                                                                       :type {:name "Code"
+                                                                              :type "enum"
+                                                                              :symbols ["foo_bar" "bar_baz"]
+                                                                              }}
+                                                                      {:name "status_field" :type "string" }]}}}})]
     (is (= {:consumes ["application/json"]
             :definitions {"Error" {:additionalProperties false
                                    :properties {:error {:type "string"}
@@ -108,8 +117,12 @@
                                    :type "object"}
                           "ErrorMetadata" {:additionalProperties {}, :type "object"}
                           "test.Empty" {:additionalProperties false
-                                        :properties {:status-field {:type "string"}}
-                                        :required [:status-field]
+                                        :properties {:status-field {:type "string"}
+                                                     :status-code {:enum '("foo-bar" "bar-baz")
+                                                                   :type "string"}
+                                                     }
+                                        :required [:status-field :status-code]
+
                                         :type "object"}}
             :info {:title "Swagger API: empty", :version "0.0.1"}
             :paths {"/test" {:post {:description ""

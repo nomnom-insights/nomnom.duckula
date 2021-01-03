@@ -71,8 +71,8 @@
 
 
 (defn config->swagger
-  [{:keys [name prefix endpoints mangle-names? kebab-case-names? snake-case-names?] :as _config}]
-  (let [mangle-names? (or mangle-names? kebab-case-names? (not snake-case-names?))]
+  [{:keys [name prefix endpoints ] :as config}]
+  (let [mangle-names? (duckula.handler/use-kebab-case? config)]
     {:swagger "2.0"
      :info {:title (str "Swagger API: " name)
             :version "0.0.1"}
@@ -88,9 +88,7 @@
 
 (defn generate
   [config]
-  (-> config
-      config->swagger
-      rs/swagger-json))
+  (rs/swagger-json (config->swagger config)))
 
 
 (defn build-handler

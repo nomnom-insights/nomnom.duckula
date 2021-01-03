@@ -8,7 +8,7 @@
   (:import
       (clojure.lang Keyword)
 
-    (org.apache.avro
+    (org.apache.avro Schema
       Schema$Type)))
 
 
@@ -35,16 +35,20 @@
     ;; Complex Types
     Schema$Type/RECORD
     (apply hash-map (mapcat (fn [key val]
-                              [(if mangle-names?
-                                 (-> key (str/replace \_ \-) keyword)
-                                 (keyword key))
-                               val])
+                              (let [k (if mangle-names?
+                                        (-> key (str/replace \_ \-) keyword)
+                                        (keyword key))]
+                              [k val]))
                             (map #(.name %) (.getFields avro-schema))
                             (map #(->map {:avro-schema (.schema %) :mangle-names? mangle-names?})
-                                 (.getFields avro-schema))))
+                                 (.getFields  avro-schema))))
 
     Schema$Type/ENUM
-    (apply s/enum (.getEnumSymbols avro-schema))
+    (apply s/enum (->>  (.getEnumSymbols avro-schema)
+                        (map (fn [enum]
+                               (if mangle-names?
+                                 (str/replace enum \_ \-)
+                                 enum)))))
 
     Schema$Type/ARRAY
     [(->map {:avro-schema (.getElementType avro-schema) :mangle-names? mangle-names?})]

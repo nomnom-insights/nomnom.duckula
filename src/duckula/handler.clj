@@ -7,14 +7,19 @@
             [clojure.string :as s]
             [clojure.tools.logging :as log]))
 
+
+(defn use-kebab-case? [{:keys [mangle-names? kebab-case-names?]}]
+  (or mangle-names?
+      kebab-case-names?))
+
 (defn build-route-map
   "Turns static config (documented below) into a map of function maps:
   - request handler
   - request input validator
   - request output validator
   Validators use Avro to ensure passed in data is ok"
-  [{:keys [prefix endpoints mangle-names? kebab-case-names? snake-case-names?]}]
-  (let [mangle-names? (or mangle-names? kebab-case-names? (not snake-case-names?))]
+  [{:keys [prefix endpoints] :as config}]
+  (let [mangle-names? (use-kebab-case? config) ]
     (->> endpoints
          (map (fn [[path conf]]
                 (hash-map (str prefix path)
