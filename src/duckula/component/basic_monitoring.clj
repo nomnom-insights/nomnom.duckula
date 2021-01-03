@@ -23,4 +23,5 @@
     [_this exception data]
     (log/errorf exception "data=%s" data)))
 
+
 (def basic (->BasicMonitoring))

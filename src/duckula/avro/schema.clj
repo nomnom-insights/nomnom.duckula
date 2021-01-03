@@ -3,12 +3,13 @@
   ported from https://github.com/cddr/integrity/blob/00326c259e5ff3ab94a37ec032da5a0d08932441/src/integrity/avro.clj
   to support union types and other features"
   (:require
-   [clojure.string :as str]
+    [clojure.string :as str]
     [schema.core :as s])
   (:import
-      (clojure.lang Keyword)
-
-    (org.apache.avro Schema
+    (clojure.lang
+      Keyword)
+    (org.apache.avro
+      Schema
       Schema$Type)))
 
 
@@ -38,7 +39,7 @@
                               (let [k (if mangle-names?
                                         (-> key (str/replace \_ \-) keyword)
                                         (keyword key))]
-                              [k val]))
+                                [k val]))
                             (map #(.name %) (.getFields avro-schema))
                             (map #(->map {:avro-schema (.schema %) :mangle-names? mangle-names?})
                                  (.getFields  avro-schema))))

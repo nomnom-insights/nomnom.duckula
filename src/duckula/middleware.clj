@@ -12,9 +12,9 @@
   [handler-fn]
   (->
    ; ring-json/wrap-json-response
-      handler-fn
-      (ring-json/wrap-json-body {:keywords? true})
-      (ring-defaults/wrap-defaults ring-defaults/api-defaults)))
+    handler-fn
+    (ring-json/wrap-json-body {:keywords? true})
+    (ring-defaults/wrap-defaults ring-defaults/api-defaults)))
 
 
 (defn with-monitoring

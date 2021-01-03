@@ -71,7 +71,7 @@
 
 
 (defn config->swagger
-  [{:keys [name prefix endpoints ] :as config}]
+  [{:keys [name prefix endpoints] :as config}]
   (let [mangle-names? (duckula.handler/use-kebab-case? config)]
     {:swagger "2.0"
      :info {:title (str "Swagger API: " name)
@@ -81,8 +81,8 @@
      :definitions {}
      :paths (->> endpoints
                  (map
-                  (fn [[path config]] (endpoint->swagger (str prefix path)
-                                                         (assoc config :mangle-names? mangle-names?))))
+                   (fn [[path config]] (endpoint->swagger (str prefix path)
+                                                          (assoc config :mangle-names? mangle-names?))))
                  (into {}))}))
 
 
