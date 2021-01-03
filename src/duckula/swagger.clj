@@ -79,8 +79,8 @@
    :definitions {}
    :paths (->> endpoints
                (map
-                (fn [[path config]] (endpoint->swagger (str prefix path)
-                                                       (assoc config :mangle-names? mangle-names))))
+                 (fn [[path config]] (endpoint->swagger (str prefix path)
+                                                        (assoc config :mangle-names? mangle-names))))
                (into {}))})
 
 

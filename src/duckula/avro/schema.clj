@@ -5,8 +5,8 @@
   (:require
     [schema.core :as s])
   (:import
-      (clojure.lang Keyword)
-
+    (clojure.lang
+      Keyword)
     (org.apache.avro
       Schema$Type)))
 

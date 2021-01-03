@@ -1,11 +1,13 @@
 (ns duckula.handler
   "Default Duckula handler. It talks JSON
   but can validate requests with provided Avro schemas"
-  (:require [cheshire.core :as json]
-            duckula.avro
-            [duckula.protocol :as monitoring]
-            [clojure.string :as s]
-            [clojure.tools.logging :as log]))
+  (:require
+    [cheshire.core :as json]
+    [clojure.string :as s]
+    [clojure.tools.logging :as log]
+    [duckula.avro]
+    [duckula.protocol :as monitoring]))
+
 
 (defn build-route-map
   "Turns static config (documented below) into a map of function maps:
@@ -23,6 +25,7 @@
                             (update :response #(duckula.avro/validator % {:mangle-names? mangle-names?
                                                                           :soft-validate? (:soft-validate? conf)}))))))
        (into {})))
+
 
 (defn build-metric-keys
   "For each endpoint it constructs a list of metric keys
@@ -45,14 +48,17 @@
                                              failure-key]))))
        (into {})))
 
+
 (def not-found-metrics
   (let [k "api.not-found"]
     [k (str k ".success") (str k ".error") (str k ".failure")]))
+
 
 (defn not-found-404 [& _]
   {:body (json/generate-string {:message "not found"})
    :headers {"content-type" "application/json"}
    :status 404})
+
 
 (defn validate-with-tag
   "Runs validation function and re-throws the exception
@@ -74,6 +80,7 @@
               input)
             ;; otherwise re-throw
             (throw (ex-info (.getMessage err) info))))))))
+
 
 (defn build
   "Sort of a router, but does validation.
@@ -118,14 +125,14 @@ It depends on a component implementing  duckula.prococol/Monitoring protocol
                 (monitoring/on-failure monitoring failure-key)
                 (let [{:keys [validation-type] :as metadata} (ex-data err)
                       to-report (merge
-                                 headers
-                                 metadata
-                                 (select-keys request [:uri :host :request-host]))]
+                                  headers
+                                  metadata
+                                  (select-keys request [:uri :host :request-host]))]
                   (monitoring/track-exception monitoring  err to-report)
                   {:body (json/generate-string
-                          {:message "Request failed"
-                           :error (.getMessage err)
-                           :metadata metadata})
+                           {:message "Request failed"
+                            :error (.getMessage err)
+                            :metadata metadata})
                    :status (if (= ::request validation-type)
                              410 ; input failure
                              500) ; server failure
