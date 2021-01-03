@@ -7,7 +7,6 @@
     [duckula.avro]
     [duckula.protocol :as monitoring]))
 
-
 (defn use-kebab-case? [{:keys [mangle-names? kebab-case-names?]}]
   (or mangle-names?
       kebab-case-names?))
@@ -34,6 +33,7 @@
                                         (fn response-validator [schema]
                                           (duckula.avro/validator schema validator-opts))))))))
          (into {}))))
+
 
 
 (defn build-metric-keys
