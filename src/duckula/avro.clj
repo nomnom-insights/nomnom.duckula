@@ -66,6 +66,8 @@
              (sequential? schema))]}
   (let [avro-schema (load-schemas schema)
         validator-fn (if mangle-names?
+                       ;; By default, all underscores in key names and enums will be converted to dashes
+                       ;; As it's more common in Clojure, but not possible to express in Avro
                        (fn [input]
                          (validate-with-schema avro-schema input))
                        ;; in order to support underscore in json payload we need to disable mangle-names
@@ -74,11 +76,12 @@
                        ;; in case you want to support dashes in the payload
                        ;; keys & values you can set optional-conf mangle-names? to true
                        ;; this is just local setting and won't effect avro functionality outside of this fn
+                       ;; See here for more info: https://github.com/nomnom-insights/abracad/tree/dce695ded697f700c3e08494c920079fad5f8c5c#basic-deserialization
                        (fn [input]
                          (with-bindings {#'abracad.util/*mangle-names* false}
                            (validate-with-schema avro-schema input))))
         validator-meta {:soft-validate? soft-validate?
-                        :schema-name (.getFullName ^org.apache.avro.Schema$RecordSchema avro-schema)}]
+                        :schema-name (.getFullName ^Schema$RecordSchema avro-schema)}]
     (with-meta
       validator-fn
       validator-meta)))

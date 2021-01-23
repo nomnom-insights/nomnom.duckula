@@ -13,6 +13,7 @@
     [ring.swagger.swagger2 :as rs])
   (:import
     (org.apache.avro
+      Schema
       Schema$RecordSchema)))
 
 
@@ -32,7 +33,7 @@
   [req-schema-path]
   (if (string? req-schema-path)
     req-schema-path
-    (.getFullName req-schema-path)))
+    (.getFullName ^Schema req-schema-path)))
 
 
 (defn make-definition
@@ -41,7 +42,8 @@
                       (avro/load-schemas (avro/name->path avro-schema)))
         schema (with-meta
                  (if avro-schema
-                   (avro.schema/->map avro-schema)
+                   (avro.schema/->map {:avro-schema avro-schema
+                                       :mangle-names? mangle-names?})
                    avro.schema/any)
                  {:name (make-schema-name (or avro-schema path))})
         description (if avro-schema
@@ -70,7 +72,6 @@
 
 
 (defn config->swagger
-
   [{:keys [name prefix endpoints mangle-names?] :as _config}]
   {:swagger "2.0"
    :info {:title (str "Swagger API: " name)
@@ -86,11 +87,10 @@
                (into {}))})
 
 
+
 (defn generate
   [config]
-  (-> config
-      config->swagger
-      rs/swagger-json))
+  (rs/swagger-json (config->swagger config)))
 
 
 (defn build-handler

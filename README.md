@@ -110,6 +110,11 @@ By default all map keys and enum values have to use `_` (underscore) as word sep
 
 If you want to enable automatic conversion of underscores to dashes (and make underscored names invalid) set `mangle-names?` to true.
 
+Since `mangle-names?` is a bit crypting setting, you can use:
+
+- `kebab-case-names?` set to true as an alias for `mangle-names? true`
+- `snake-case-names?` set to true as an alias for `mangle-names? false` (the default)
+
 #### Example
 
 ```json

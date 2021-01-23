@@ -19,7 +19,7 @@
                  :message "foo"}]
     (is (= payload
            (schema.core/validate
-             (avro.schema/->map sample-avro-schema)
+             (avro.schema/->map {:avro-schema sample-avro-schema})
              payload)))))
 
 
@@ -32,4 +32,4 @@
                          :fields [{:name "bar" :type "string" :doc "bah"}]}))
         expected-schema {:bar avro.schema/string}]
     (is (= expected-schema
-           (avro.schema/->map avro-schema)))))
+           (avro.schema/->map {:avro-schema  avro-schema})))))

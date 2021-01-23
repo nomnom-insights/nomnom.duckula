@@ -8,7 +8,6 @@
   [handler-fn]
 
   component/Lifecycle
-
   (start
     [this]
     (let [handler (:handler-fn this)]

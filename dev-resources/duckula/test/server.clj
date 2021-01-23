@@ -17,7 +17,6 @@
 
 (def config
   {:name "test-server-rpc"
-   :mangle-names? false
    :endpoints {"/search/test" {:request "search/test/Request"
                                :response "search/test/Response"
                                :handler handler.search/handler}
