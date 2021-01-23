@@ -70,6 +70,7 @@
 
 
 (defn config->swagger
+
   [{:keys [name prefix endpoints mangle-names?] :as _config}]
   {:swagger "2.0"
    :info {:title (str "Swagger API: " name)
@@ -81,6 +82,7 @@
                (map
                  (fn [[path config]] (endpoint->swagger (str prefix path)
                                                         (assoc config :mangle-names? mangle-names))))
+               (sort-by (fn [[path _]] path))
                (into {}))})
 
 
