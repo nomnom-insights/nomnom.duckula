@@ -81,6 +81,7 @@
      :consumes ["application/json"]
      :definitions {}
      :paths (->> endpoints
+                 (sort-by (fn [[path config]] path))
                  (map
                    (fn [[path config]] (endpoint->swagger (str prefix path)
                                                           (assoc config :mangle-names? mangle-names?))))
