@@ -14,9 +14,9 @@
                  [prismatic/schema "1.1.12"]
                  [metosin/ring-swagger "0.26.2"]
                  [metosin/ring-swagger-ui "3.25.3"]]
-  :deploy-repositories {"clojars" {:sign-releases false
-                                   :username :env/clojars_username
-                                   :password :env/clojars_password}}
+  :deploy-repositories [["releases"  {:sign-releases false :url "https://clojars.org"}]
+                        ["snapshots" {:sign-releases false :url "https://clojars.org"}]]
+
   :license {:name "MIT License"
             :url "https://opensource.org/licenses/MIT"
             :year 2018

@@ -18,22 +18,21 @@ Duckula is a synchronous equivalent of [Bunnicula](https://github.com/nomnom-ins
 
 - uses Stuart Sierra's [Component](https://github.com/stuartsierra/component) for dependency injection
 - establishes conventions for synchronous HTTP APIs:
-  - HTTP POST only
-  - JSON for input/output (for now)
+  - HTTP POST **only**
+  - JSON for input/output (for now, full Avro support is planned)
   - routes/URIs map to operations (e.g. `POST documents/get-by-id` instead of `GET /documents`), meaning there's no route params
 - handlers are functions receiving the request map, along with dependent components
 - validates inputs and outputs via Avro schemas
-  - supports merging multiple Avro schemas to make it easy to share schemas
+  - supports merging multiple Avro schemas to make it easy to share definitions between endpoints and requests/responses
 - uses protocols to inject a monitoring middleware. We provide our own, which reports metrics to Statsd and errors to Rollbar - see [duckula.monitoring](https://github.com/nomnom-insights/nomnom.duckula.monitoring)
 - convention over configuration, where it makes sense
+- can generate Swagger (OpenAPI) documentation
 
 
 ## Roadmap
 
-- [x] exposes (optionally) endpoint with API documentation based on Avro's doc properites (schemas and schema fields can be documented) in the Swagger/OpenAPI format
 - [ ] can talk Avro (input and output) via content type negotiation
-
-- [ ] equivalent clj-http middleware for building type-safe clients
+- [ ] clj-http middleware for building type-safe clients
 
 ## Rationale
 
@@ -110,10 +109,11 @@ By default all map keys and enum values have to use `_` (underscore) as word sep
 
 If you want to enable automatic conversion of underscores to dashes (and make underscored names invalid) set `mangle-names?` to true.
 
-Since `mangle-names?` is a bit crypting setting, you can use:
+Since `mangle-names?` is a bit cryptic, you can use:
 
-- `kebab-case-names?` set to true as an alias for `mangle-names? true`
 - `snake-case-names?` set to true as an alias for `mangle-names? false` (the default)
+- `kebab-case-names?` set to true as an alias for `mangle-names? true`
+
 
 #### Example
 
@@ -148,10 +148,10 @@ When set to true Duckula will perform input and output validation, but **will st
 
 ### Schema loading and merging
 
-You can pass a resource path to a single schema, and it will be looked up in resource paths, with the `schema/endpoint` prefix.
+You can pass a resource path to a single schema, and it will be looked up in *resource* paths, with the `schema/endpoint` prefix.
 
 Example: `search/get/Request` will be resolved to `schema/endpoint/search/get/Request.avsc`.
-You can configure the endpoints to merge schemas, for re-use of parts by passing a vector of schemas:
+You can configure the endpoints to reuse schemas, by merging them in order:
 
 ```clojure
 
@@ -162,7 +162,7 @@ You can configure the endpoints to merge schemas, for re-use of parts by passing
 
 # Monitoring
 
-Theonl only hard dependency is the monitoring component, which implements `duckula.protcol/Monitoring` protocol. A sample implementation can be found in `duckula.component.monitoring` namespace.
+The only hard dependency is the monitoring component, which implements `duckula.protcol/Monitoring` protocol. A sample implementation can be found in `duckula.component.monitoring` namespace.
 
 We have a complete, production grade implementation based on [Caliban](https://github.com/nomnom-insights/nomnom.caliban) for reporting exceptions to Rollbar, and [Stature](https://github.com/nomnom-insights/nomnom.stature) for recording metrics to a Statsd server.
 
