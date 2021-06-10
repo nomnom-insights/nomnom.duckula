@@ -1,6 +1,7 @@
 {
   "name": "search.test.Request",
   "type": "record",
+  "doc" : "Find all matching documents and specify the order",
   "fields": [
     {
       "name": "query",

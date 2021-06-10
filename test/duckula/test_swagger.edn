@@ -1,0 +1,96 @@
+{:consumes ["application/json"]
+ :definitions {"Error" {:additionalProperties false
+                        :properties {:error {:type "string"}
+                                     :message {:type "string"}
+                                     :metadata {:$ref "#/definitions/ErrorMetadata"}}
+                        :required [:message :error :metadata]
+                        :type "object"}
+               "ErrorMetadata" {:additionalProperties {}, :type "object"}
+               "Search.test.responseItems" {:additionalProperties false
+                                            :properties {:content {:type "string"}
+                                                         :id {:format "int64", :type "integer"}}
+                                            :required [:content :id]
+                                            :type "object"}
+               "number.multiply.Request" {:additionalProperties false
+                                          :properties {:input {:format "int64", :type "integer"}}
+                                          :required [:input]
+                                          :type "object"}
+               "number.multiply.Response" {:additionalProperties false
+                                           :properties {:message {}
+                                                        :result {:format "int64"
+                                                                 :type "integer"}
+                                                        :status {:enum ("success"
+                                                                        "error"
+                                                                        "timeout")
+                                                                 :type "string"}}
+                                           :required [:status :result :message]
+                                           :type "object"}
+               "search.test.Request" {:additionalProperties false
+                                      :properties {:order_by {:enum ("updated_at" "created_at")
+                                                              :type "string"}
+                                                   :query {:type "string"}
+                                                   :size {}}
+                                      :required [:order_by :size :query]
+                                      :type "object"}
+               "search.test.Response" {:additionalProperties false
+                                       :properties {:items {:items {:$ref "#/definitions/Search.test.responseItems"}
+                                                            :type "array"}
+                                                    :message {}
+                                                    :status {:enum ("success" "error" "timeout")
+                                                             :type "string"}}
+                                       :required [:status :items :message]
+                                       :type "object"}}
+ :info {:title "Swagger API: test-server-rpc", :version "0.0.1"}
+ :paths {"/echo" {:post {:description ":no-doc:"
+                         :parameters [{:description ""
+                                       :in "body"
+                                       :name "/echo"
+                                       :required true
+                                       :schema {}}]
+                         :responses {200 {:description ":no-doc:", :schema {}}
+                                     410 {:description "Request data didn't conform to the request data schema"
+                                          :schema {:$ref "#/definitions/Error"}}
+                                     500 {:description "Internal server error, or response couldn't be serialized according to the response schema"
+                                          :schema {:$ref "#/definitions/Error"}}}
+                         :summary "/echo"}}
+         "/number/multiply" {:post {:description ""
+                                    :parameters [{:description ""
+                                                  :in "body"
+                                                  :name "number.multiply.Request"
+                                                  :required true
+                                                  :schema {:$ref "#/definitions/number.multiply.Request"}}]
+                                    :responses {200 {:description ""
+                                                     :schema {:$ref "#/definitions/number.multiply.Response"}}
+                                                410 {:description "Request data didn't conform to the request data schema"
+                                                     :schema {:$ref "#/definitions/Error"}}
+                                                500 {:description "Internal server error, or response couldn't be serialized according to the response schema"
+                                                     :schema {:$ref "#/definitions/Error"}}}
+                                    :summary "/number/multiply"}}
+         "/number/multiply-soft" {:post {:description ""
+                                         :parameters [{:description ""
+                                                       :in "body"
+                                                       :name "number.multiply.Request"
+                                                       :required true
+                                                       :schema {:$ref "#/definitions/number.multiply.Request"}}]
+                                         :responses {200 {:description ""
+                                                          :schema {:$ref "#/definitions/number.multiply.Response"}}
+                                                     410 {:description "Request data didn't conform to the request data schema"
+                                                          :schema {:$ref "#/definitions/Error"}}
+                                                     500 {:description "Internal server error, or response couldn't be serialized according to the response schema"
+                                                          :schema {:$ref "#/definitions/Error"}}}
+                                         :summary "/number/multiply-soft"}}
+         "/search/test" {:post {:description "Find all matching documents and specify the order"
+                                :parameters [{:description ""
+                                              :in "body"
+                                              :name "search.test.Request"
+                                              :required true
+                                              :schema {:$ref "#/definitions/search.test.Request"}}]
+                                :responses {200 {:description ""
+                                                 :schema {:$ref "#/definitions/search.test.Response"}}
+                                            410 {:description "Request data didn't conform to the request data schema"
+                                                 :schema {:$ref "#/definitions/Error"}}
+                                            500 {:description "Internal server error, or response couldn't be serialized according to the response schema"
+                                                 :schema {:$ref "#/definitions/Error"}}}
+                                :summary "/search/test"}}}
+ :produces ["application/json"]
+ :swagger "2.0"}

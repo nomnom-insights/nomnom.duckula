@@ -1,9 +1,11 @@
 {
   "name": "search.get.Response",
   "type": "record",
+  "doc" : "Returns search results, along with ids and tags",
   "fields": [
     {
       "name": "id",
+      "doc" : "ID of the document",
       "type": "string"
     },
     {

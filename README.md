@@ -1,4 +1,4 @@
-# duckula
+# Duckula
 
 
 Status
@@ -30,8 +30,9 @@ Duckula is a synchronous equivalent of [Bunnicula](https://github.com/nomnom-ins
 
 ## Roadmap
 
+- [x] exposes (optionally) endpoint with API documentation based on Avro's doc properites (schemas and schema fields can be documented) in the Swagger/OpenAPI format
 - [ ] can talk Avro (input and output) via content type negotiation
-- [ ] exposes (optionally) endpoint with API documentation based on Avro's doc properites (schemas and schema fields can be documented) in the OpenAPI format
+
 - [ ] equivalent clj-http middleware for building type-safe clients
 
 ## Rationale
@@ -71,12 +72,16 @@ Then in your Component system:
   (merge
    {:db (some.db/connection)
     ;; required for metrics and error reporting
-    :monitoring duckula.component.basic-monitoring/BasicMonitoring}
+    :monitoring duckula.component.basic-monitoring/basic}
    ;; see dev-resources dir for a working example
    ;; at the very least, your ring middleware stack needs to handle
    ;; JSON parsing from the POST body
+   ;; also, Duckula assumes that Components are included in the :component
+   ;; key of the request map
+   ;; You can use duckula.middleware/with-monitoring middleware for that
    (duckula.test.component.http-server/create
-    (duckula.handler/build config)
+     (duckula.middleware/wrap-handler
+      (duckula.handler/build config))
     [:db :monitoring]
     {:port 3000 :name "api"})))
 
@@ -104,6 +109,11 @@ Duckula will:
 By default all map keys and enum values have to use `_` (underscore) as word separators. That's true for inputs (POST data) and outputs (JSON responses). That also means, that all keys with `-` dashes in key names, will be replaced with `_` underscores. See more info about schema mangling here: https://github.com/nomnom-insights/abracad#basic-deserialization
 
 If you want to enable automatic conversion of underscores to dashes (and make underscored names invalid) set `mangle-names?` to true.
+
+Since `mangle-names?` is a bit crypting setting, you can use:
+
+- `kebab-case-names?` set to true as an alias for `mangle-names? true`
+- `snake-case-names?` set to true as an alias for `mangle-names? false` (the default)
 
 #### Example
 
@@ -167,7 +177,8 @@ See it here: https://github.com/nomnom-insights/nomnom.duckula.monitoring
   "Test HTTP server"
   (:require [duckula.test.component.http-server :as http-server]
             duckula.handler
-            [duckula.component.basic-monitoring :as monit]
+            duckula.middleware
+            [duckula.component.basic-monitoring :as monitoring]
             [duckula.handler.echo :as handler.echo]
             [duckula.handler.number :as handler.number]
             [duckula.handler.search :as handler.search]
@@ -194,8 +205,8 @@ See it here: https://github.com/nomnom-insights/nomnom.duckula.monitoring
 (defn start! []
   (let [sys (component/map->SystemMap
              (merge
-              {:monitoring monit/BasicMonitoring}
-              (http-server/create (duckula.handler/build config)
+              {:monitoring monitoring/basic}
+              (http-server/create (duckula.middleare/wrap-handler (duckula.handler/build config))
                                   [:monitoring]
                                   {:name "test-rpc-server"
                                    :port 3003})))]
@@ -227,13 +238,41 @@ An example of how to add Duckula powered routes to an existing Compojure-based a
 ;; assumes we're using compojure
 
 (defroutes all
-  (context "/groups" [] (duckula.handler/build config))
+  (context "/groups" [] (duckula.middleware/wrap-handler (duckula.handler/build config)))
   (context "/dashboards" [] service.http.handlers.dashboards/routes))
 
 
 ```
 
+## Swagger  <sup>beta</sup>
+
+Duckula can generate [Swagger](https://swagger.io) JSON definition and serve the Swagger UI.
+
+To get started, swap how your API handler is built from:
+
+```clojure
+
+(def api (duckula.middleware/wrap-handler (duckula.handler/build config)))
+```
+
+
+to
+
+```clojure
+
+(def api (duckula.middleware/wrap-handler (duckula.swagger/with-docs config)))
+```
+
+And restart your server.
+
+The UI is now accessible under `/~docs/ui` and the API definition can be downloaded from `/~docs/swagger.json`
+
+
 # Changelog
+
+## [0.6.0-SNAPSHOT] - **Unreleased**
+
+Adds [Swagger](https://swagger.io) support, allows for defining inline Avro schemas in the API config and ships witha minimal Ring middleware for handling JSON requests.
 
 ## [0.5.3] - 2020-03-25
 

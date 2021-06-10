@@ -1,11 +1,16 @@
 (ns duckula.handler
   "Default Duckula handler. It talks JSON
   but can validate requests with provided Avro schemas"
-  (:require [cheshire.core :as json]
-            duckula.avro
-            [duckula.protocol :as monitoring]
-            [clojure.string :as s]
-            [clojure.tools.logging :as log]))
+  (:require
+    [clojure.string :as s]
+    [clojure.tools.logging :as log]
+    [duckula.avro]
+    [duckula.protocol :as monitoring]))
+
+(defn use-kebab-case? [{:keys [mangle-names? kebab-case-names?]}]
+  (or mangle-names?
+      kebab-case-names?))
+
 
 (defn build-route-map
   "Turns static config (documented below) into a map of function maps:
@@ -13,16 +18,23 @@
   - request input validator
   - request output validator
   Validators use Avro to ensure passed in data is ok"
-  [{:keys [prefix endpoints mangle-names?]}]
-  (->> endpoints
-       (map (fn [[path conf]]
-              (hash-map (str prefix path)
-                        (-> conf
-                            (update :request #(duckula.avro/validator % {:mangle-names? mangle-names?
-                                                                         :soft-validate? (:soft-validate? conf)}))
-                            (update :response #(duckula.avro/validator % {:mangle-names? mangle-names?
-                                                                          :soft-validate? (:soft-validate? conf)}))))))
-       (into {})))
+  [{:keys [prefix endpoints] :as config}]
+  (let [mangle-names? (use-kebab-case? config)]
+    (->> endpoints
+         (map (fn route-builder [[path conf]]
+                (hash-map (str prefix path)
+                          (let [validator-opts  {:mangle-names? mangle-names?
+                                                 :soft-validate? (:soft-validate? conf)}]
+                            (-> conf
+                                (update :request
+                                        (fn request-validator [schema]
+                                          (duckula.avro/validator schema validator-opts)))
+                                (update :response
+                                        (fn response-validator [schema]
+                                          (duckula.avro/validator schema validator-opts))))))))
+         (into {}))))
+
+
 
 (defn build-metric-keys
   "For each endpoint it constructs a list of metric keys
@@ -34,7 +46,7 @@
   test-api.some.endpoint.failure"
   [{:keys [endpoints prefix] :as config}]
   (->> endpoints
-       (map (fn [[path _conf]]
+       (map (fn metric-key-builder [[path _conf]]
               (let [metric-key (str (:name config) (s/replace (str prefix path) \/ \.))
                     success-key (str metric-key ".success")
                     error-key (str metric-key ".error")
@@ -45,14 +57,16 @@
                                              failure-key]))))
        (into {})))
 
+
 (def not-found-metrics
   (let [k "api.not-found"]
     [k (str k ".success") (str k ".error") (str k ".failure")]))
 
+
 (defn not-found-404 [& _]
-  {:body (json/generate-string {:message "not found"})
-   :headers {"content-type" "application/json"}
+  {:body  {:message "not found"}
    :status 404})
+
 
 (defn validate-with-tag
   "Runs validation function and re-throws the exception
@@ -75,6 +89,7 @@
             ;; otherwise re-throw
             (throw (ex-info (.getMessage err) info))))))))
 
+
 (defn build
   "Sort of a router, but does validation.
 Config has to have the form of:
@@ -94,7 +109,7 @@ It depends on a component implementing  duckula.prococol/Monitoring protocol
   [config]
   (let [routes (build-route-map config)
         metrics (build-metric-keys config)]
-    (fn [{:keys [uri component headers body] :as request}]
+    (fn wrapped-handler [{:keys [uri component headers body] :as request}]
       (let [{:keys [monitoring]} component
             request-fns (get routes uri)
             request-validator (get request-fns :request)
@@ -111,25 +126,22 @@ It depends on a component implementing  duckula.prococol/Monitoring protocol
                 (if ok?
                   (monitoring/on-success monitoring success-key {:body body :status status})
                   (monitoring/on-error monitoring error-key))
-                (-> response
-                    (assoc-in [:headers "content-type"] "application/json")
-                    (update :body json/generate-string)))
+                response)
               (catch Exception err
                 (monitoring/on-failure monitoring failure-key)
                 (let [{:keys [validation-type] :as metadata} (ex-data err)
                       to-report (merge
-                                 headers
-                                 metadata
-                                 (select-keys request [:uri :host :request-host]))]
+                                  headers
+                                  metadata
+                                  (select-keys request [:uri :host :request-host]))]
                   (monitoring/track-exception monitoring  err to-report)
-                  {:body (json/generate-string
-                          {:message "Request failed"
-                           :error (.getMessage err)
-                           :metadata metadata})
+                  {:body {:message "Request failed"
+                          :error (.getMessage err)
+                          :metadata metadata}
                    :status (if (= ::request validation-type)
                              410 ; input failure
                              500) ; server failure
-                   :headers {"content-type" "application/json"}})))
+                   })))
             (do
               (monitoring/on-not-found monitoring error-key uri)
               (not-found-404))))))))

@@ -1,5 +1,6 @@
 (ns duckula.test.handler.number)
 
+
 (defn handler
   [{:keys [body] :as req}]
   (let [{:keys [input]} body]

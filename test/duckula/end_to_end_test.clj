@@ -1,18 +1,27 @@
 (ns duckula.end-to-end-test
-  (:require [duckula.test.server :as test.server]
-            [clj-http.client :as http.client]
-            [cheshire.core :as json]
-            [clojure.test :refer :all]))
+  (:require
+    [cheshire.core :as json]
+    [clj-http.client :as http.client]
+    [clojure.test :refer [deftest is testing use-fixtures]]
+    [duckula.avro]
+    [duckula.test.server :as test.server]))
+
 
 (use-fixtures :once (fn [t]
                       (test.server/start!)
                       (t)
                       (test.server/stop!)))
 
-(defn body [r]
-  (-> r
-      :body
-      (json/parse-string true)))
+
+(defn body
+  [r]
+  (try
+    (-> r
+        :body
+        (json/parse-string true))
+    (catch Exception _e
+      (:body r))))
+
 
 (deftest it-validates-ins-and-outs
   (testing "invalid input"
@@ -24,7 +33,7 @@
              (:status response)))
       (is (= {:message "Request failed"
               :error "Cannot write datum as schema"
-              :metadata {:schema-name "schema/endpoint/search/test/Request.avsc"
+              :metadata {:schema-name "search.test.Request"
                          :soft-validate? nil
                          :validation-type "duckula.handler/request"}}
              (body response)))))
@@ -37,7 +46,7 @@
       (is (= 500
              (:status response)))
       (is (= {:message "Request failed"
-              :metadata {:schema-name "schema/endpoint/number/multiply/Response.avsc"
+              :metadata {:schema-name "number.multiply.Response"
                          :soft-validate? nil
                          :validation-type "duckula.handler/response"}}
              (dissoc (body response) :error)))
@@ -85,4 +94,10 @@
       (is (= 404
              (:status response)))
       (is (= {:message "not found"}
-             (body response))))))
+             (body response)))))
+
+  (testing "swagger docs"
+    (testing "returns swagger.json"
+      (is (= 200 (:status (http.client/get "http://localhost:3003/~docs/swagger.json")))))
+    (testing "serves the Swagger UI"
+      (is (= 200 (:status (http.client/get "http://localhost:3003/~docs/ui")))))))
