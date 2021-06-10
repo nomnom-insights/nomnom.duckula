@@ -270,9 +270,15 @@ The UI is now accessible under `/~docs/ui` and the API definition can be downloa
 
 # Changelog
 
-## [0.6.0-SNAPSHOT] - **Unreleased**
+## [0.7.1] - 2021-06-10
 
-Adds [Swagger](https://swagger.io) support, allows for defining inline Avro schemas in the API config and ships witha minimal Ring middleware for handling JSON requests.
+- Adds [Swagger](https://swagger.io) support, allows for defining inline Avro schemas in the API config and ships witha minimal Ring middleware for handling JSON requests.
+- Fixes JSON content type handling
+- More clear options for disabling/enabling keyword mangling
+- **Potential breaking change** basic monitoring component implementation is now a record and provides a default instance under `duckula.component.basic-monitoring/basic`
+- Set of helper Ring middlewares for no-config setup:
+  - `duckula.middleware/wrap-handler` which provides proper JSON input/output handling
+  - `duckula.middleware/with-monitoring` - allows for using Duckula with Components, it can either inject basic monitoring layer, or accepts your own implementation of the `duckula.protocol/Monitoring`
 
 ## [0.5.3] - 2020-03-25
 
