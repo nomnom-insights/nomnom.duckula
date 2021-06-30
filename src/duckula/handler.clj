@@ -127,7 +127,7 @@ It depends on a component implementing  duckula.prococol/Monitoring protocol
                   (monitoring/on-success monitoring success-key {:body body :status status})
                   (monitoring/on-error monitoring error-key))
                 response)
-              (catch Exception err
+              (catch Throwable err
                 (monitoring/on-failure monitoring failure-key)
                 (let [{:keys [validation-type] :as metadata} (ex-data err)
                       to-report (merge
