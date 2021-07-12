@@ -270,6 +270,10 @@ The UI is now accessible under `/~docs/ui` and the API definition can be downloa
 
 # Changelog
 
+## [0.7.2] - 2021-07-12
+
+- Catch Throwable in request handler (not just Exception)
+
 ## [0.7.1] - 2021-06-10
 
 - Adds [Swagger](https://swagger.io) support, allows for defining inline Avro schemas in the API config and ships witha minimal Ring middleware for handling JSON requests.
