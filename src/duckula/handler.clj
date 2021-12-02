@@ -7,7 +7,9 @@
     [duckula.avro]
     [duckula.protocol :as monitoring]))
 
-(defn use-kebab-case? [{:keys [mangle-names? kebab-case-names?]}]
+
+(defn use-kebab-case?
+  [{:keys [mangle-names? kebab-case-names?]}]
   (or mangle-names?
       kebab-case-names?))
 
@@ -21,19 +23,21 @@
   [{:keys [prefix endpoints] :as config}]
   (let [mangle-names? (use-kebab-case? config)]
     (->> endpoints
-         (map (fn route-builder [[path conf]]
+         (map (fn route-builder
+                [[path conf]]
                 (hash-map (str prefix path)
                           (let [validator-opts  {:mangle-names? mangle-names?
                                                  :soft-validate? (:soft-validate? conf)}]
                             (-> conf
                                 (update :request
-                                        (fn request-validator [schema]
+                                        (fn request-validator
+                                          [schema]
                                           (duckula.avro/validator schema validator-opts)))
                                 (update :response
-                                        (fn response-validator [schema]
+                                        (fn response-validator
+                                          [schema]
                                           (duckula.avro/validator schema validator-opts))))))))
          (into {}))))
-
 
 
 (defn build-metric-keys
@@ -46,7 +50,8 @@
   test-api.some.endpoint.failure"
   [{:keys [endpoints prefix] :as config}]
   (->> endpoints
-       (map (fn metric-key-builder [[path _conf]]
+       (map (fn metric-key-builder
+              [[path _conf]]
               (let [metric-key (str (:name config) (s/replace (str prefix path) \/ \.))
                     success-key (str metric-key ".success")
                     error-key (str metric-key ".error")
@@ -63,7 +68,8 @@
     [k (str k ".success") (str k ".error") (str k ".failure")]))
 
 
-(defn not-found-404 [& _]
+(defn not-found-404
+  [& _]
   {:body  {:message "not found"}
    :status 404})
 
@@ -109,7 +115,8 @@ It depends on a component implementing  duckula.prococol/Monitoring protocol
   [config]
   (let [routes (build-route-map config)
         metrics (build-metric-keys config)]
-    (fn wrapped-handler [{:keys [uri component headers body] :as request}]
+    (fn wrapped-handler
+      [{:keys [uri component headers body] :as request}]
       (let [{:keys [monitoring]} component
             request-fns (get routes uri)
             request-validator (get request-fns :request)
