@@ -270,6 +270,10 @@ The UI is now accessible under `/~docs/ui` and the API definition can be downloa
 
 # Changelog
 
+## [0.7.3] - 2021-12-02
+
+- Updated dependencies
+
 ## [0.7.2] - 2021-07-12
 
 - Catch Throwable in request handler (not just Exception)
