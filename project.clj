@@ -8,7 +8,6 @@
                  [ring/ring-defaults "0.3.3"]
                  [ring/ring-json "0.5.1"]
 
-
                  ;; Dependencies for swagger schema generators
                  ;; and visualizing things
                  [prismatic/schema "1.2.0"]
@@ -25,10 +24,7 @@
 
   :global-vars {*warn-on-reflection* true}
 
-  :profiles {
-             :test
-             {:dependencies [[lein-cloverage "1.1.2" :exclusions [org.clojure/clojure]]]}
-             :dev
+  :profiles {:dev
              {:resource-paths ["dev-resources"]
               :dependencies [[org.clojure/tools.logging "1.1.0"]
                              [ch.qos.logback/logback-classic "1.2.7"
@@ -38,7 +34,7 @@
                              [ring-jetty-component "0.3.1"
                               :exclude [ring/ring-codec
                                         org.eclipse.jetty/jetty-server]]
-                             ;; do not upgrade to 10.x & 11.x families
+                             ;; do not upgrade to 10.x or 11.x versions
                              [org.eclipse.jetty/jetty-server "9.4.44.v20210927"]
                              [compojure "1.6.2"]
                              [ring/ring-mock "0.4.0"

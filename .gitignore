@@ -13,4 +13,3 @@ pom.xml.asc
 /deps.txt
 /.lsp/
 /coverage
-cc-test-reporter

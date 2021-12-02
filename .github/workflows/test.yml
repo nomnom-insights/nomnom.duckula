@@ -16,19 +16,17 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # - name: Cache deps
-    #   uses: actions/cache@v2
-    #   with:
-    #     path: /root/.m2
-    #     key: v1-deps-${{ hashFiles('project.clj') }}
-    #     restore-keys: |
-    #       v1-deps-${{ hashFiles('project.clj') }}
+    - name: Cache deps
+      uses: actions/cache@v2
+      with:
+        path: /root/.m2
+        key: v1-deps-${{ hashFiles('project.clj') }}
+        restore-keys: |
+          v1-deps-${{ hashFiles('project.clj') }}
 
     - name: Install dependencies
-      run: |
-        lein with-profile test deps
+      run: lein deps
 
     - name: Run tests
       id: tests
-      run: |
-        lein test
+      run: lein test
