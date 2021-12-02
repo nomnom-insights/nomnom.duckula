@@ -22,10 +22,13 @@
             :url "https://opensource.org/licenses/MIT"
             :year 2018
             :key "mit"}
-  :plugins [[lein-cloverage "1.1.2" :exclusions [org.clojure/clojure]]]
+
   :global-vars {*warn-on-reflection* true}
 
-  :profiles {:dev
+  :profiles {
+             :test
+             {:dependencies [[lein-cloverage "1.1.2" :exclusions [org.clojure/clojure]]]}
+             :dev
              {:resource-paths ["dev-resources"]
               :dependencies [[org.clojure/tools.logging "1.1.0"]
                              [ch.qos.logback/logback-classic "1.2.7"
