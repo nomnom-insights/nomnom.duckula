@@ -12,3 +12,5 @@ pom.xml.asc
 .hg/
 /deps.txt
 /.lsp/
+/coverage
+cc-test-reporter
