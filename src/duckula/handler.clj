@@ -124,31 +124,31 @@ It depends on a component implementing  duckula.prococol/Monitoring protocol
             handler-fn (get request-fns :handler)
             [metric-key success-key error-key failure-key] (get metrics uri not-found-metrics)]
         (monitoring/with-timing monitoring metric-key
-                                (if handler-fn
-                                  (try
-                                    (validate-with-tag ::request request-validator (or body {}) monitoring)
-                                    (let [{:keys [status body] :as response} (handler-fn request)
-                                          ok? (< status 400)]
-                                      (validate-with-tag ::response response-validator (or body {}) monitoring)
-                                      (if ok?
-                                        (monitoring/on-success monitoring success-key {:body body :status status})
-                                        (monitoring/on-error monitoring error-key))
-                                      response)
-                                    (catch Throwable err
-                                      (monitoring/on-failure monitoring failure-key)
-                                      (let [{:keys [validation-type] :as metadata} (ex-data err)
-                                            to-report (merge
-                                                        headers
-                                                        metadata
-                                                        (select-keys request [:uri :host :request-host]))]
-                                        (monitoring/track-exception monitoring  err to-report)
-                                        {:body {:message "Request failed"
-                                                :error (.getMessage err)
-                                                :metadata metadata}
-                                         :status (if (= ::request validation-type)
-                                                   410 ; input failure
-                                                   500) ; server failure
-                                         })))
-                                  (do
-                                    (monitoring/on-not-found monitoring error-key uri)
-                                    (not-found-404))))))))
+          (if handler-fn
+            (try
+              (validate-with-tag ::request request-validator (or body {}) monitoring)
+              (let [{:keys [status body] :as response} (handler-fn request)
+                    ok? (< status 400)]
+                (validate-with-tag ::response response-validator (or body {}) monitoring)
+                (if ok?
+                  (monitoring/on-success monitoring success-key {:body body :status status})
+                  (monitoring/on-error monitoring error-key))
+                response)
+              (catch Throwable err
+                (monitoring/on-failure monitoring failure-key)
+                (let [{:keys [validation-type] :as metadata} (ex-data err)
+                      to-report (merge
+                                  headers
+                                  metadata
+                                  (select-keys request [:uri :host :request-host]))]
+                  (monitoring/track-exception monitoring  err to-report)
+                  {:body {:message "Request failed"
+                          :error (.getMessage err)
+                          :metadata metadata}
+                   :status (if (= ::request validation-type)
+                             410 ; input failure
+                             500) ; server failure
+                   })))
+            (do
+              (monitoring/on-not-found monitoring error-key uri)
+              (not-found-404))))))))
