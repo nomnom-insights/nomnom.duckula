@@ -1,9 +1,9 @@
-(defproject nomnom/duckula "0.7.3-SNAPSHOT-1"
+(defproject nomnom/duckula "0.7.3"
   :description "RPC server (and soon, client), built on top of JSON+Avro+HTTP"
   :url "https://github.com/nomnom-insights/nomnom.duckula"
   :dependencies [[org.clojure/clojure "1.10.3"]
                  [com.stuartsierra/component "1.0.0"]
-                 [nomnom/abracad "0.5.1"]
+                 [nomnom/abracad "0.5.2"]
 
                  [ring/ring-defaults "0.3.3"]
                  [ring/ring-json "0.5.1"]
