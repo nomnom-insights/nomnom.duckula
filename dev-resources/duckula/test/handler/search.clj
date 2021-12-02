@@ -3,7 +3,7 @@
 
 (defn handler
   [{:keys [body] :as req}]
-  (let [{:keys [query order_by size]} body] ;; TestRequest!
+  (let [{:keys [query order_by size]} body] ; TestRequest!
     {:status 200
      :body {:status :success
             ;; we can skip message field, :message "foo"

@@ -12,11 +12,11 @@
 
 
 (compojure/defroutes app
-  (compojure/GET "/some/endpoint" [] "foo")
-  (compojure/context "/rpc-api" []
-                     (duckula.middleware/wrap-handler
-                       (duckula.handler/build (assoc test.server/config
-                                                     :prefix "/rpc-api")))))
+                     (compojure/GET "/some/endpoint" [] "foo")
+                     (compojure/context "/rpc-api" []
+                                        (duckula.middleware/wrap-handler
+                                          (duckula.handler/build (assoc test.server/config
+                                                                        :prefix "/rpc-api")))))
 
 
 (use-fixtures :once (fn [t]

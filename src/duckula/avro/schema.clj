@@ -22,7 +22,8 @@
 (def any-map {Keyword any})
 
 
-(defn ->map [{:keys [avro-schema mangle-names?]}]
+(defn ->map
+  [{:keys [avro-schema mangle-names?]}]
   (condp = (.getType ^Schema avro-schema)
 
     ;; Primitive types

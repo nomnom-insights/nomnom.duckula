@@ -32,7 +32,8 @@
                "/echo" {:handler handler.echo/handler}}})
 
 
-(defn start-with-handler! [handler]
+(defn start-with-handler!
+  [handler]
   (let [sys (component/map->SystemMap
               (merge
                 {:monitoring monitoring/basic}
@@ -43,9 +44,11 @@
     (reset! server (component/start sys))))
 
 
-(defn start! []
+(defn start!
+  []
   (start-with-handler! (duckula.middleware/wrap-handler (duckula.swagger/with-docs config))))
 
 
-(defn stop! []
+(defn stop!
+  []
   (swap! server component/stop))

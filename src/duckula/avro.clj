@@ -10,6 +10,7 @@
     (org.apache.avro
       Schema$RecordSchema)))
 
+
 ;; Ensure that when returning an avro schema in the error messages
 ;; we don't send the raw object, just the name
 (json.generate/add-encoder Schema$RecordSchema
