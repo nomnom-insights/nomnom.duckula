@@ -4,7 +4,6 @@ curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-lin
 chmod +x ./cc-test-reporter
 ./cc-test-reporter before-build
 
-
 LEIN_FAST_TRAMPOLINE=1 lein trampoline cloverage \
                     --lcov \
                     --no-text \
@@ -13,6 +12,8 @@ LEIN_FAST_TRAMPOLINE=1 lein trampoline cloverage \
                     --ns-exclude-regex ".*basic.*" \
                     -o $PWD
 testRes=$?
+
 mkdir -p coverage
 mv lcov.info coverage/lcov.info
+
 ./cc-test-reporter after-build --coverage-input-type lcov --exit-code $testRes

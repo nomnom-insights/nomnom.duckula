@@ -29,4 +29,5 @@ jobs:
 
     - name: Run tests
       id: tests
-      run: ./script/ci-test
+      run: |
+        lein test
