@@ -22,6 +22,8 @@
       ]
     },
     {
-    "name" : "result", "type" : "long" }
+      "name": "result",
+      "type": "long"
+    }
   ]
 }

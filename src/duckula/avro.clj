@@ -1,15 +1,16 @@
 (ns duckula.avro
   (:require
-    [abracad.avro.codec :as codec]
-    [abracad.avro.util :as abracad.util]
-    [abracad.io :as io]
-    [cheshire.generate :as json.generate])
+   [abracad.avro.codec :as codec]
+   [abracad.avro.util :as abracad.util]
+   [abracad.io :as io]
+   [cheshire.generate :as json.generate]
+   [duckula.avro.schema :as avro.schema]
+   [schema.core :as s])
   (:import
-    (com.fasterxml.jackson.core.json
-      WriterBasedJsonGenerator)
-    (org.apache.avro
-      Schema$RecordSchema)))
-
+   (com.fasterxml.jackson.core.json
+    WriterBasedJsonGenerator)
+   (org.apache.avro
+    Schema$RecordSchema)))
 
 ;; Ensure that when returning an avro schema in the error messages
 ;; we don't send the raw object, just the name
@@ -18,10 +19,8 @@
                              (.writeString ^WriterBasedJsonGenerator json-generator
                                            (.getFullName ^Schema$RecordSchema s))))
 
-
 (def ^:dynamic *default-path* "schema/endpoint/")
 (def ^:dynamic *default-extension* ".avsc")
-
 
 (defn name->path
   "If `n` is not a map - turn it into the default path to a schema file
@@ -32,25 +31,34 @@
     (string? n) (str *default-path* n *default-extension*)
     (sequential? n) (mapv name->path n)))
 
-
 (defn load-schemas
   [& schemas]
   (when (seq schemas)
-    (apply codec/parse-schema* (map #(cond
-                                       (map? %) %
-                                       (string? %) (io/read-json-resource %)
-                                       (sequential? %) (map io/read-json-resource %))
-                                    (flatten schemas)))))
+    (let [schemas (map #(cond
+                          (map? %) %
+                          (string? %) (io/read-json-resource %)
+                          (sequential? %) (map io/read-json-resource %))
+                       (flatten schemas))]
+      (try
+        (apply codec/parse-schema* schemas)
+        (catch Exception e
+          (throw (ex-info "schemas couldnt be loaded" {:schemas schemas
+                                                       :err e})))))))
 
+(def avro-schema->-schema-schema*
+  (memoize (fn [opts]
+             (avro.schema/->map opts))))
 
 (defn validate-with-schema
   [schema input]
   (if schema
     (do
-      (codec/->avro schema input)
+      ;; Validate with Avro, disabled because of crappy messages
+      ;; (codec/->avro schema input) - works but you get raw Avro error messages 👎
+      (let [schm (avro-schema->-schema-schema* {:avro-schema schema :mangle-names? abracad.util/*mangle-names*})]
+        (s/validate schm input))
       input)
     input))
-
 
 (defn make-validator
   "Returns a validator function for given Avro schema map, single schema path, or a list of
@@ -86,7 +94,6 @@
     (with-meta
       validator-fn
       validator-meta)))
-
 
 (defn validator
   "Creates a validator function for given schema paths.

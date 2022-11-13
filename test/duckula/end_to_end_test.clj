@@ -1,17 +1,15 @@
 (ns duckula.end-to-end-test
   (:require
-    [cheshire.core :as json]
-    [clj-http.client :as http.client]
-    [clojure.test :refer [deftest is testing use-fixtures]]
-    [duckula.avro]
-    [duckula.test.server :as test.server]))
-
+   [cheshire.core :as json]
+   [clojure.test :refer [deftest is testing use-fixtures]]
+   [duckula.avro]
+   [duckula.test.server :as test.server]
+   [clj-http.client :as http.client]))
 
 (use-fixtures :once (fn [t]
                       (test.server/start!)
                       (t)
                       (test.server/stop!)))
-
 
 (defn body
   [r]
@@ -22,7 +20,6 @@
     (catch Exception _e
       (:body r))))
 
-
 (deftest it-validates-ins-and-outs
   (testing "invalid input"
     (let [response (http.client/post "http://localhost:3003/search/test" {:content-type :json
@@ -32,7 +29,7 @@
       (is (= 410
              (:status response)))
       (is (= {:message "Request failed"
-              :error "Cannot write datum as schema"
+              :error "Value does not match schema: {:order_by missing-required-key, :query missing-required-key, :foo disallowed-key}"
               :metadata {:schema-name "search.test.Request"
                          :soft-validate? nil
                          :validation-type "duckula.handler/request"}}
@@ -42,7 +39,7 @@
     (let [response (http.client/post "http://localhost:3003/number/multiply" {:content-type :json
                                                                               :accept :json
                                                                               :throw-exceptions false
-                                                                              :form-params {:input 42}})]
+                                                                              :body (json/generate-string {:input 42})})]
       (is (= 500
              (:status response)))
       (is (= {:message "Request failed"
@@ -50,8 +47,8 @@
                          :soft-validate? nil
                          :validation-type "duckula.handler/response"}}
              (dissoc (body response) :error)))
-      (is (re-find  #"java.lang.String.+cannot.+be.+cast.+to.+java.lang.Number"
-                    (:error (body response))))))
+      (is (re-find #"Value does not match schema:.+result.+not.+integer.+42"
+                   (:error (body response))))))
   (testing "invalid input, but it still returns because of soft validation"
     (let [response (http.client/post "http://localhost:3003/number/multiply-soft" {:content-type :json
                                                                                    :accept :json
@@ -94,10 +91,4 @@
       (is (= 404
              (:status response)))
       (is (= {:message "not found"}
-             (body response)))))
-
-  (testing "swagger docs"
-    (testing "returns swagger.json"
-      (is (= 200 (:status (http.client/get "http://localhost:3003/~docs/swagger.json")))))
-    (testing "serves the Swagger UI"
-      (is (= 200 (:status (http.client/get "http://localhost:3003/~docs/ui")))))))
+             (body response))))))

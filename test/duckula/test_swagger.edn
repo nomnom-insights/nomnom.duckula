@@ -16,29 +16,34 @@
                                           :required [:input]
                                           :type "object"}
                "number.multiply.Response" {:additionalProperties false
-                                           :properties {:message {}
+                                           :properties {:message {:x-oneOf [nil {:type "string"}]}
                                                         :result {:format "int64"
                                                                  :type "integer"}
-                                                        :status {:enum ("success"
+                                                        :status {:enum ["success"
                                                                         "error"
-                                                                        "timeout")
+                                                                        "timeout"
+                                                                        :success
+                                                                        :error
+                                                                        :timeout]
                                                                  :type "string"}}
-                                           :required [:status :result :message]
+                                           :required [:status :result]
                                            :type "object"}
                "search.test.Request" {:additionalProperties false
-                                      :properties {:order_by {:enum ("updated_at" "created_at")
+                                      :properties {:order_by {:enum ["updated_at" :updated_at "created_at" :created_at]
                                                               :type "string"}
                                                    :query {:type "string"}
-                                                   :size {}}
-                                      :required [:order_by :size :query]
+                                                   :size {:x-oneOf [nil
+                                                                    {:format "int64" :type "integer"}]}}
+                                      :required [:order_by :query]
                                       :type "object"}
                "search.test.Response" {:additionalProperties false
                                        :properties {:items {:items {:$ref "#/definitions/Search.test.responseItems"}
                                                             :type "array"}
-                                                    :message {}
-                                                    :status {:enum ("success" "error" "timeout")
+                                                    :message {:x-oneOf [nil {:type "string"}]}
+                                                    :status {:enum ["success" "error" "timeout" :success :error :timeout]
                                                              :type "string"}}
-                                       :required [:status :items :message]
+
+                                       :required [:status :items]
                                        :type "object"}}
  :info {:title "Swagger API: test-server-rpc", :version "0.0.1"}
  :paths {"/echo" {:post {:description ":no-doc:"

@@ -4,18 +4,17 @@
   Note that we're ignoring reflection warnings as they don't matter in dev mode, and in production
   all schemas are (should be) parsed only once."
   (:require
-    [cheshire.core :as json]
-    [clojure.string :as string]
-    [duckula.avro :as avro]
-    [duckula.avro.schema :as avro.schema]
-    [duckula.handler]
-    [ring.swagger.swagger-ui :as swagger.ui]
-    [ring.swagger.swagger2 :as rs])
+   [cheshire.core :as json]
+   [clojure.string :as string]
+   [duckula.avro :as avro]
+   [duckula.avro.schema :as avro.schema]
+   [duckula.handler]
+   [ring.swagger.swagger-ui :as swagger.ui]
+   [ring.swagger.swagger2 :as rs])
   (:import
-    (org.apache.avro
-      Schema
-      Schema$RecordSchema)))
-
+   (org.apache.avro
+    Schema
+    Schema$RecordSchema)))
 
 (def error-schemas
   (let [error (with-meta
@@ -28,13 +27,11 @@
      500 {:description "Internal server error, or response couldn't be serialized according to the response schema"
           :schema error}}))
 
-
 (defn make-schema-name
   [req-schema-path]
   (if (string? req-schema-path)
     req-schema-path
     (.getFullName ^Schema req-schema-path)))
-
 
 (defn make-definition
   [{:keys [avro-schema path mangle-names?]}]
@@ -50,7 +47,6 @@
                       (.getDoc ^Schema$RecordSchema avro-schema)
                       ":no-doc:")]
     {:schema schema :description description}))
-
 
 (defn endpoint->swagger
   [path config]
@@ -70,7 +66,6 @@
                                     {200 {:description (:description response-config)
                                           :schema (:schema response-config)}})}}}))
 
-
 (defn config->swagger
   [{:keys [name prefix endpoints] :as config}]
   (let [mangle-names? (duckula.handler/use-kebab-case? config)]
@@ -82,17 +77,15 @@
      :definitions {}
      :paths (->> endpoints
                  (map
-                   (fn [[path config]]
-                     (endpoint->swagger (str prefix path)
-                                        (assoc config :mangle-names? mangle-names?))))
+                  (fn [[path config]]
+                    (endpoint->swagger (str prefix path)
+                                       (assoc config :mangle-names? mangle-names?))))
                  (sort-by :path)
                  (into {}))}))
-
 
 (defn generate
   [config]
   (rs/swagger-json (config->swagger config)))
-
 
 (defn build-handler
   "Returns a Ring handler which returns auto-generated
@@ -105,13 +98,10 @@
        :body (json/generate-string swagger-json)
        :headers {"content-type" "application/json"}})))
 
-
 (def swagger-ui-handler swagger.ui/swagger-ui)
-
 
 (def ui-prefix "/~docs/ui")
 (def swagger-json-path "/~docs/swagger.json")
-
 
 (defn with-docs
   "Builds a Ring handler - just like reqular duckula.handler

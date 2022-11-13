@@ -14,7 +14,7 @@
                  [metosin/ring-swagger "0.26.2"]
                  [metosin/ring-swagger-ui "4.0.0"]]
 
-  :deploy-repositories [["releases"  {:sign-releases false :url "https://clojars.org"}]
+  :deploy-repositories [["releases" {:sign-releases false :url "https://clojars.org"}]
                         ["snapshots" {:sign-releases false :url "https://clojars.org"}]]
 
   :license {:name "MIT License"
@@ -31,11 +31,8 @@
                               :exclusions [org.slf4j/slf4j-api]]
                              ;; test & dev deps
                              [clj-http "3.12.3"]
-                             [ring-jetty-component "0.3.1"
-                              :exclude [ring/ring-codec
-                                        org.eclipse.jetty/jetty-server]]
-                             ;; do not upgrade to 10.x or 11.x versions
-                             [org.eclipse.jetty/jetty-server "9.4.44.v20210927"]
+                             [info.sunng/ring-jetty9-adapter "0.18.1"]
+
                              [compojure "1.6.2"]
                              [ring/ring-mock "0.4.0"
                               :exclusions [ring/ring-codec]]]}})

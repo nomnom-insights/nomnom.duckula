@@ -1,7 +1,6 @@
 (ns duckula.protocol
   (:refer-clojure :exclude [key]))
 
-
 (defprotocol Monitoring
 
   (record-timing
@@ -28,7 +27,6 @@
     [this exception data]
     [this exception]
     "Tracks that an exception was thrown"))
-
 
 (defmacro with-timing
   "Tiny macro to record timing of a given form."
