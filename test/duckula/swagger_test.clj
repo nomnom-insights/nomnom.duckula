@@ -1,15 +1,14 @@
 (ns duckula.swagger-test
   (:require
-    [clojure.edn :as edn]
-    [clojure.java.io :as io]
-    [clojure.test :refer [deftest is testing]]
-    [duckula.swagger :as swag]
-    [duckula.test.server :as test.server]))
-
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]
+   [clojure.test :refer [deftest is testing]]
+   [duckula.swagger :as swag]
+   [duckula.test.server :as test.server]))
 
 (deftest it-generates-a-swagger-config
   (testing "empty endpoints"
-    (let [conf (swag/generate {:name "empty"} #_ test.server/config)]
+    (let [conf (swag/generate {:name "empty"} #_test.server/config)]
       (is (= {:consumes ["application/json"]
               :definitions {}
               :info {:title "Swagger API: empty" :version "0.0.1"}
@@ -47,12 +46,10 @@
               :swagger "2.0"}
              conf)))))
 
-
 (deftest working-server-example-config
   (let [conf (swag/generate test.server/config)]
     (is (= (edn/read-string (slurp (io/resource "duckula/test_swagger.edn")))
            conf))))
-
 
 (deftest with-inline-schema
   (let [conf (swag/generate {:name "empty"
@@ -89,7 +86,6 @@
             :swagger "2.0"}
            conf))))
 
-
 (deftest name-mangling-in-docs
   (let [conf (swag/generate {:name "empty"
                              :kebab-case-names? true
@@ -114,7 +110,7 @@
                           "ErrorMetadata" {:additionalProperties {}, :type "object"}
                           "test.Empty" {:additionalProperties false
                                         :properties {:status-field {:type "string"}
-                                                     :status-code {:enum '("foo-bar" "bar-baz")
+                                                     :status-code {:enum '("foo-bar" :foo-bar :bar-baz "bar-baz")
                                                                    :type "string"}}
                                         :required [:status-field :status-code]
 

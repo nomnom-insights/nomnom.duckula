@@ -1,7 +1,7 @@
 (ns duckula.test.handler.search)
 
 (defn handler
-  [{:keys [body] :as req}]
+  [{:keys [body] :as _req}]
   (let [{:keys [query order_by size]} body] ; TestRequest!
     {:status 200
      :body {:status :success

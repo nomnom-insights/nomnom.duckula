@@ -2,17 +2,15 @@
   "Default Duckula handler. It talks JSON
   but can validate requests with provided Avro schemas"
   (:require
-    [clojure.string :as s]
-    [clojure.tools.logging :as log]
-    [duckula.avro]
-    [duckula.protocol :as monitoring]))
-
+   [clojure.string :as s]
+   [clojure.tools.logging :as log]
+   [duckula.avro]
+   [duckula.protocol :as monitoring]))
 
 (defn use-kebab-case?
   [{:keys [mangle-names? kebab-case-names?]}]
   (or mangle-names?
       kebab-case-names?))
-
 
 (defn build-route-map
   "Turns static config (documented below) into a map of function maps:
@@ -26,8 +24,8 @@
          (map (fn route-builder
                 [[path conf]]
                 (hash-map (str prefix path)
-                          (let [validator-opts  {:mangle-names? mangle-names?
-                                                 :soft-validate? (:soft-validate? conf)}]
+                          (let [validator-opts {:mangle-names? mangle-names?
+                                                :soft-validate? (:soft-validate? conf)}]
                             (-> conf
                                 (update :request
                                         (fn request-validator
@@ -38,7 +36,6 @@
                                           [schema]
                                           (duckula.avro/validator schema validator-opts))))))))
          (into {}))))
-
 
 (defn build-metric-keys
   "For each endpoint it constructs a list of metric keys
@@ -62,17 +59,14 @@
                                              failure-key]))))
        (into {})))
 
-
 (def not-found-metrics
   (let [k "api.not-found"]
     [k (str k ".success") (str k ".error") (str k ".failure")]))
 
-
 (defn not-found-404
   [& _]
-  {:body  {:message "not found"}
+  {:body {:message "not found"}
    :status 404})
-
 
 (defn validate-with-tag
   "Runs validation function and re-throws the exception
@@ -94,7 +88,6 @@
               input)
             ;; otherwise re-throw
             (throw (ex-info (.getMessage err) info))))))))
-
 
 (defn build
   "Sort of a router, but does validation.
@@ -138,10 +131,10 @@ It depends on a component implementing  duckula.prococol/Monitoring protocol
                 (monitoring/on-failure monitoring failure-key)
                 (let [{:keys [validation-type] :as metadata} (ex-data err)
                       to-report (merge
-                                  headers
-                                  metadata
-                                  (select-keys request [:uri :host :request-host]))]
-                  (monitoring/track-exception monitoring  err to-report)
+                                 headers
+                                 metadata
+                                 (select-keys request [:uri :host :request-host]))]
+                  (monitoring/track-exception monitoring err to-report)
                   {:body {:message "Request failed"
                           :error (.getMessage err)
                           :metadata metadata}

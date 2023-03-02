@@ -3,10 +3,9 @@
   (:require
    [com.stuartsierra.component :as component]
    [duckula.component.basic-monitoring :as monitoring]
+   [duckula.component.http-server :as http-server]
    [duckula.handler]
    [duckula.middleware]
-   [duckula.swagger]
-   [duckula.test.component.http-server :as http-server]
    [duckula.test.handler.echo :as handler.echo]
    [duckula.test.handler.number :as handler.number]
    [duckula.test.handler.search :as handler.search]))
@@ -34,15 +33,15 @@
   (let [sys (component/map->SystemMap
              (merge
               {:monitoring monitoring/basic}
-              (http-server/create handler
-                                  [:monitoring]
-                                  {:name "test-rpc-server"
-                                   :port 3003})))]
+              (http-server/create {:handler handler
+                                   :config {:name "test-rpc-server"
+                                            :port 3003}}
+                                  [:monitoring])))]
     (reset! server (component/start sys))))
 
 (defn start!
   []
-  (start-with-handler! (duckula.middleware/wrap-handler (duckula.swagger/with-docs config))))
+  (start-with-handler! (duckula.middleware/wrap-handler (duckula.handler/build config))))
 
 (defn stop!
   []
