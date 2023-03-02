@@ -14,8 +14,9 @@
                  [metosin/ring-swagger "0.26.2"]
                  [metosin/ring-swagger-ui "4.15.5"]]
 
-  :deploy-repositories [["releases" {:sign-releases false :url "https://clojars.org"}]
-                        ["snapshots" {:sign-releases false :url "https://clojars.org"}]]
+  :deploy-repositories {"clojars" {:sign-releases false
+                                   :username :env/clojars_username
+                                   :password :env/clojars_password}}
 
   :license {:name "MIT License"
             :url "https://opensource.org/licenses/MIT"
